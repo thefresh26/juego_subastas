@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import type { Property, PropertyInput } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
@@ -37,6 +38,8 @@ export default function Host() {
 
   const [state, setState] = useState<HostState | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+  const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
   // --- Formulario de propiedades (crear / editar) ---
   const [showForm, setShowForm] = useState(false);
@@ -152,6 +155,30 @@ export default function Host() {
     send({ t: "host:relist_property", propertyId: id });
   };
 
+  const joinUrl = (pin: string) => `${window.location.origin}/play?pin=${pin}`;
+
+  const copiarEnlace = async (pin: string) => {
+    try {
+      await navigator.clipboard.writeText(joinUrl(pin));
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // clipboard no disponible (permiso o navegador viejo): no hacemos nada más.
+    }
+  };
+
+  const compartirEnlace = async (pin: string) => {
+    try {
+      await navigator.share({
+        title: "Subasta Activa",
+        text: "Únete a la subasta:",
+        url: joinUrl(pin),
+      });
+    } catch {
+      // el usuario canceló el share o no está disponible: sin problema.
+    }
+  };
+
   // ---------- Pantalla de login ----------
   if (!authed) {
     return (
@@ -224,10 +251,42 @@ export default function Host() {
           Cerrar sesión
         </button>
       </div>
-      <p className="opacity-70 mb-6">
+      <p className="opacity-70 mb-4">
         PIN: <span className="font-mono tabular">{state?.pin ?? "----"}</span> · estado:{" "}
         <span className="font-mono">{state?.estado ?? "-"}</span> · {state?.jugadores.length ?? 0} jugadores
       </p>
+
+      {state?.pin && (
+        <div className="bg-manila/10 rounded-xl p-4 mb-6 flex items-center gap-4">
+          <div className="bg-manila p-2 rounded-lg shrink-0">
+            <QRCodeSVG value={joinUrl(state.pin)} size={110} />
+          </div>
+          <div className="flex-1">
+            <p className="font-display mb-1">QR de registro para los clientes</p>
+            <p className="text-sm opacity-70 mb-2">
+              Compártelo o proyéctalo para que escaneen y se registren (nombre, celular, correo) antes de pujar.
+              Cualquiera con este enlace puede reenviarlo a otros.
+            </p>
+            <p className="text-xs font-mono opacity-60 break-all mb-3">{joinUrl(state.pin)}</p>
+            <div className="flex gap-2">
+              <button
+                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm"
+                onClick={() => copiarEnlace(state.pin)}
+              >
+                {copiado ? "¡Copiado!" : "Copiar enlace"}
+              </button>
+              {canShare && (
+                <button
+                  className="bg-manila text-archivo px-3 py-1.5 rounded text-sm"
+                  onClick={() => compartirEnlace(state.pin)}
+                >
+                  Compartir
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {actionError && (
         <div className="bg-sello/90 text-manila rounded-lg px-4 py-2 mb-6 flex justify-between">
