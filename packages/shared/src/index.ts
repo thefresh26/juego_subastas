@@ -8,6 +8,9 @@ import { z } from "zod";
 
 // ---------- Primitivas ----------
 
+export const PropertyEstadoSchema = z.enum(["disponible", "en_subasta", "adjudicado"]);
+export type PropertyEstado = z.infer<typeof PropertyEstadoSchema>;
+
 export const PropertySchema = z.object({
   id: z.string(),
   nombre: z.string(),
@@ -18,8 +21,23 @@ export const PropertySchema = z.object({
   avaluo: z.number(), // COP
   descripcion: z.string().optional(),
   imagenUrl: z.string().optional(),
+  estado: PropertyEstadoSchema,
 });
 export type Property = z.infer<typeof PropertySchema>;
+
+// Campos que el admin puede enviar al crear/editar un inmueble (sin id/estado,
+// esos los controla el servidor).
+export const PropertyInputSchema = z.object({
+  nombre: z.string().min(1),
+  ciudad: z.string().min(1),
+  tipo: z.string().min(1),
+  matriculaInmobiliaria: z.string().min(1),
+  areaM2: z.number().positive(),
+  avaluo: z.number().positive(),
+  descripcion: z.string().optional(),
+  imagenUrl: z.string().optional(),
+});
+export type PropertyInput = z.infer<typeof PropertyInputSchema>;
 
 export const PlayerSummarySchema = z.object({
   playerId: z.string(),
@@ -182,12 +200,23 @@ export type ServerToScreenMsg = z.infer<typeof ServerToScreenMsg>;
 
 export const HostArmMsg = z.object({ t: z.literal("host:arm"), propertyId: z.string() });
 export const HostStartMsg = z.object({ t: z.literal("host:start") });
-export const HostAbortMsg = z.object({ t: z.literal("host:abort") });
-export const HostRepeatMsg = z.object({ t: z.literal("host:repeat"), roundId: z.string() });
+export const HostAbortMsg = z.object({ t: z.literal("host:abort") }); // termina la ronda en curso
+export const HostRepeatMsg = z.object({ t: z.literal("host:repeat"), roundId: z.string() }); // reinicia la subasta
 export const HostNextMsg = z.object({ t: z.literal("host:next") });
 export const HostPodiumMsg = z.object({ t: z.literal("host:podium") });
 export const HostKickMsg = z.object({ t: z.literal("host:kick"), playerId: z.string() });
+// token = access_token de Supabase Auth (JWT de la sesión del admin), no un secreto fijo.
 export const HostJoinMsg = z.object({ t: z.literal("host:join"), token: z.string() });
+
+export const HostCreatePropertyMsg = z.object({ t: z.literal("host:create_property"), data: PropertyInputSchema });
+export const HostUpdatePropertyMsg = z.object({
+  t: z.literal("host:update_property"),
+  propertyId: z.string(),
+  data: PropertyInputSchema,
+});
+export const HostDeletePropertyMsg = z.object({ t: z.literal("host:delete_property"), propertyId: z.string() });
+// Vuelve a poner en subasta un inmueble ya adjudicado (estado -> disponible).
+export const HostRelistPropertyMsg = z.object({ t: z.literal("host:relist_property"), propertyId: z.string() });
 
 export const HostToServerMsg = z.discriminatedUnion("t", [
   HostArmMsg,
@@ -198,6 +227,10 @@ export const HostToServerMsg = z.discriminatedUnion("t", [
   HostPodiumMsg,
   HostKickMsg,
   HostJoinMsg,
+  HostCreatePropertyMsg,
+  HostUpdatePropertyMsg,
+  HostDeletePropertyMsg,
+  HostRelistPropertyMsg,
 ]);
 export type HostToServerMsg = z.infer<typeof HostToServerMsg>;
 

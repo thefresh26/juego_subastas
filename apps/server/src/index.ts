@@ -6,16 +6,17 @@ import {
   HostToServerMsg,
 } from "@subasta/shared";
 import { GameRoom } from "./gameRoom.js";
+import { verifyAdminToken, supabaseEnabled } from "./supabase.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
-const HOST_TOKEN = process.env.HOST_TOKEN ?? "dev-host-token";
 
 const room = new GameRoom();
+await room.initProperties();
 
 const app = Fastify({ logger: true });
 await app.register(cors, { origin: true });
 
-app.get("/health", async () => ({ ok: true, estado: room.state.estado }));
+app.get("/health", async () => ({ ok: true, estado: room.state.estado, supabase: supabaseEnabled }));
 
 const server = app.server;
 
@@ -98,11 +99,14 @@ wssScreen.on("connection", (socket: WebSocket) => {
 });
 
 // ---------- /ws/host ----------
+// El admin se autentica con el access_token de una sesión de Supabase Auth
+// (o, en desarrollo sin Supabase configurado, con el HOST_TOKEN fijo).
 
 wssHost.on("connection", (socket: WebSocket) => {
   let authed = false;
+  let adminEmail: string | undefined;
 
-  socket.on("message", (raw) => {
+  socket.on("message", async (raw) => {
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw.toString());
@@ -114,11 +118,13 @@ wssHost.on("connection", (socket: WebSocket) => {
     const msg = result.data;
 
     if (msg.t === "host:join") {
-      authed = msg.token === HOST_TOKEN;
+      const verified = await verifyAdminToken(msg.token);
+      authed = verified.ok;
+      adminEmail = verified.email;
       if (authed) {
         room.addHost(socket);
       } else {
-        socket.send(JSON.stringify({ t: "error", code: "bad_token", mensaje: "Token inválido" }));
+        socket.send(JSON.stringify({ t: "error", code: "bad_token", mensaje: "Sesión inválida o vencida" }));
         socket.close();
       }
       return;
@@ -129,22 +135,34 @@ wssHost.on("connection", (socket: WebSocket) => {
     try {
       switch (msg.t) {
         case "host:arm":
-          room.armRound(msg.propertyId);
+          await room.armRound(msg.propertyId);
           break;
         case "host:abort":
           room.abortRound();
           break;
         case "host:repeat":
-          room.repeatRound(msg.roundId);
+          await room.repeatRound(msg.roundId);
           break;
         case "host:podium":
           room.buildPodium();
+          break;
+        case "host:create_property":
+          await room.createPropertyEntry(msg.data);
+          break;
+        case "host:update_property":
+          await room.updatePropertyEntry(msg.propertyId, msg.data);
+          break;
+        case "host:delete_property":
+          await room.deletePropertyEntry(msg.propertyId);
+          break;
+        case "host:relist_property":
+          await room.relistProperty(msg.propertyId);
           break;
         case "host:start":
         case "host:next":
         case "host:kick":
           // host:start no hace falta: armRound ya programa el inicio automático.
-          // host:next / host:kick quedan para Fase 3.
+          // host:next / host:kick quedan para una fase posterior.
           break;
       }
     } catch (err) {
@@ -156,4 +174,6 @@ wssHost.on("connection", (socket: WebSocket) => {
 });
 
 await app.listen({ port: PORT, host: "0.0.0.0" });
-console.log(`Servidor de Subasta Activa escuchando en :${PORT} (host token: ${HOST_TOKEN})`);
+console.log(
+  `Servidor de Subasta Activa escuchando en :${PORT} (Supabase: ${supabaseEnabled ? "conectado" : "desconectado, modo local"})`
+);

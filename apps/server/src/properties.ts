@@ -1,7 +1,9 @@
 import type { Property } from "@subasta/shared";
 
 /**
- * Catálogo de inmuebles para Fase 1 (hardcodeado; en Fase 3 se carga por seed).
+ * Catálogo de respaldo: solo se usa si SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY
+ * no están configurados (modo desarrollo sin base de datos). En producción los
+ * inmuebles se leen y administran desde la tabla `properties` de Supabase.
  */
 export const PROPERTIES: Property[] = [
   {
@@ -13,6 +15,7 @@ export const PROPERTIES: Property[] = [
     areaM2: 210,
     avaluo: 2_400_000_000,
     descripcion: "Penthouse con vista al mar, 4 alcobas, terraza privada.",
+    estado: "disponible",
   },
   {
     id: "prop-2",
@@ -23,6 +26,7 @@ export const PROPERTIES: Property[] = [
     areaM2: 480,
     avaluo: 890_000_000,
     descripcion: "Casa campestre con lote de 2.000 m2, piscina y BBQ.",
+    estado: "disponible",
   },
   {
     id: "prop-3",
@@ -33,5 +37,6 @@ export const PROPERTIES: Property[] = [
     areaM2: 95,
     avaluo: 620_000_000,
     descripcion: "Oficina en piso 14, zona financiera, parqueadero incluido.",
+    estado: "disponible",
   },
 ];

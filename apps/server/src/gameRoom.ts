@@ -3,12 +3,20 @@ import { nanoid } from "nanoid";
 import {
   GAME_CONSTANTS,
   type PlayerSummary,
-  type Property,
+  type PropertyInput,
 } from "@subasta/shared";
-import { PROPERTIES } from "./properties.js";
+import {
+  loadProperties,
+  createProperty,
+  updateProperty,
+  deleteProperty,
+  setPropertyEstado,
+  logPlayerLogin,
+  logRoundResult,
+} from "./propertiesRepo.js";
 import type { PlayerConn, RoomState, RoundState } from "./types.js";
 
-const PIN = "1234"; // fijo en Fase 1 (sala única, sin persistencia)
+const PIN = "1234"; // fijo por ahora (sala única); las propiedades sí viven en Supabase
 
 function safeSend(socket: WebSocket | null, payload: unknown) {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
@@ -21,7 +29,7 @@ export class GameRoom {
     valorPorTap: GAME_CONSTANTS.DEFAULT_VALOR_POR_TAP,
     estado: "lobby",
     players: new Map(),
-    properties: PROPERTIES,
+    properties: [],
     currentRound: null,
     roundHistory: [],
     screens: new Set(),
@@ -32,6 +40,13 @@ export class GameRoom {
 
   now() {
     return Date.now();
+  }
+
+  // ---------- Arranque ----------
+
+  async initProperties() {
+    this.state.properties = await loadProperties();
+    this.broadcastHostState();
   }
 
   // ---------- Conexiones ----------
@@ -45,6 +60,7 @@ export class GameRoom {
         existing.nickname = nickname || existing.nickname;
         player = existing;
         this.broadcastHostState();
+        logPlayerLogin(this.state.pin, player.nickname, player.playerId).catch(() => {});
         return player;
       }
     }
@@ -58,6 +74,7 @@ export class GameRoom {
     this.state.players.set(player.playerId, player);
     this.broadcastLobby();
     this.broadcastHostState();
+    logPlayerLogin(this.state.pin, player.nickname, player.playerId).catch(() => {});
     return player;
   }
 
@@ -119,17 +136,58 @@ export class GameRoom {
     round.firstReachedAt.set(playerId, this.now());
   }
 
+  // ---------- Administración de inmuebles (admin) ----------
+
+  async createPropertyEntry(input: PropertyInput) {
+    const property = await createProperty(input);
+    this.state.properties.push(property);
+    this.broadcastHostState();
+    return property;
+  }
+
+  async updatePropertyEntry(propertyId: string, input: PropertyInput) {
+    const property = await updateProperty(propertyId, input);
+    const idx = this.state.properties.findIndex((p) => p.id === propertyId);
+    if (idx >= 0) this.state.properties[idx] = property;
+    if (this.state.currentRound?.propiedad.id === propertyId) {
+      this.state.currentRound.propiedad = property;
+    }
+    this.broadcastHostState();
+    return property;
+  }
+
+  async deletePropertyEntry(propertyId: string) {
+    await deleteProperty(propertyId);
+    this.state.properties = this.state.properties.filter((p) => p.id !== propertyId);
+    this.broadcastHostState();
+  }
+
+  /** Vuelve a poner en subasta un inmueble ya adjudicado (o cualquiera). */
+  async relistProperty(propertyId: string) {
+    const updated = await setPropertyEstado(propertyId, "disponible");
+    this.setLocalPropertyEstado(propertyId, "disponible");
+    this.broadcastHostState();
+    return updated;
+  }
+
+  private setLocalPropertyEstado(propertyId: string, estado: "disponible" | "en_subasta" | "adjudicado") {
+    const idx = this.state.properties.findIndex((p) => p.id === propertyId);
+    if (idx >= 0) this.state.properties[idx] = { ...this.state.properties[idx], estado };
+  }
+
   // ---------- Ciclo de ronda (host) ----------
 
-  armRound(propertyId: string) {
+  async armRound(propertyId: string) {
     const propiedad = this.state.properties.find((p) => p.id === propertyId);
     if (!propiedad) throw new Error("Inmueble no encontrado");
+    if (propiedad.estado === "en_subasta") throw new Error("Ese inmueble ya está en subasta");
 
     const roundId = nanoid(12);
     const startAt = this.now() + GAME_CONSTANTS.ARM_LEAD_MS;
+    const propiedadEnSubasta = { ...propiedad, estado: "en_subasta" as const };
     const round: RoundState = {
       roundId,
-      propiedad,
+      propiedad: propiedadEnSubasta,
       startAt,
       duracionMs: GAME_CONSTANTS.ROUND_DURATION_MS,
       estado: "armed",
@@ -141,17 +199,21 @@ export class GameRoom {
     };
     this.state.currentRound = round;
     this.state.estado = "armed";
+    this.setLocalPropertyEstado(propertyId, "en_subasta");
 
     const payload = {
       t: "round_armed" as const,
       roundId,
-      propiedad,
+      propiedad: propiedadEnSubasta,
       startAt,
       duracionMs: round.duracionMs,
     };
     for (const p of this.state.players.values()) safeSend(p.socket, payload);
     for (const s of this.state.screens) safeSend(s, payload);
     this.broadcastHostState();
+
+    // Persistir el cambio de estado sin bloquear el arranque de la ronda.
+    setPropertyEstado(propertyId, "en_subasta").catch(() => {});
 
     // Programar el arranque exacto de la ronda contra el reloj del servidor.
     const delay = startAt - this.now();
@@ -170,17 +232,24 @@ export class GameRoom {
     setTimeout(() => this.endRound(roundId), round.duracionMs);
   }
 
+  /** El admin termina la ronda en curso antes de tiempo (sin adjudicar). */
   abortRound() {
     if (this.tickInterval) clearInterval(this.tickInterval);
+    const round = this.state.currentRound;
+    if (round) {
+      this.setLocalPropertyEstado(round.propiedad.id, "disponible");
+      setPropertyEstado(round.propiedad.id, "disponible").catch(() => {});
+    }
     this.state.currentRound = null;
     this.state.estado = "lobby";
     this.broadcastHostState();
   }
 
-  repeatRound(roundId: string) {
+  /** El admin reinicia/repite la subasta del mismo inmueble. */
+  async repeatRound(roundId: string) {
     const past = this.state.roundHistory.find((r) => r.roundId === roundId) ?? this.state.currentRound;
     if (!past) throw new Error("Ronda no encontrada");
-    this.armRound(past.propiedad.id);
+    await this.armRound(past.propiedad.id);
   }
 
   private endRound(roundId: string) {
@@ -201,6 +270,18 @@ export class GameRoom {
       : null;
 
     this.state.roundHistory.push(round);
+
+    // El inmueble queda adjudicado si hubo ganador; si no, vuelve a disponible.
+    const nuevoEstado = round.ganador ? "adjudicado" : "disponible";
+    this.setLocalPropertyEstado(round.propiedad.id, nuevoEstado);
+    setPropertyEstado(round.propiedad.id, nuevoEstado).catch(() => {});
+    logRoundResult({
+      propertyId: round.propiedad.id,
+      winnerNickname: round.ganador?.nickname ?? null,
+      winnerTaps: winner?.taps ?? 0,
+      valorFinal: round.ganador?.valorFinal ?? 0,
+      startedAt: round.startAt,
+    }).catch(() => {});
 
     for (const p of this.state.players.values()) {
       const misTaps = round.counts.get(p.playerId) ?? 0;
