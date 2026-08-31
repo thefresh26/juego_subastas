@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile && pnpm --filter @subasta/shared build && pnpm --filter @subasta/server build
+    buildCommand: npm install -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @subasta/shared build && pnpm --filter @subasta/server build
     startCommand: pnpm --filter @subasta/server start
     healthCheckPath: /health
     envVars:
@@ -18,7 +18,7 @@ services:
   - type: web
     name: subasta-web
     runtime: static
-    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile && pnpm --filter @subasta/shared build && pnpm --filter @subasta/web build
+    buildCommand: npm install -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @subasta/shared build && pnpm --filter @subasta/web build
     staticPublishPath: apps/web/dist
     envVars:
       # Ajusta este valor si Render asigna un subdominio distinto a subasta-server
