@@ -10,9 +10,12 @@ const WS_URL = wsUrl("/ws/player");
 
 export default function Play() {
   const clockRef = useRef(new ServerClock());
+  const pinFromQr = new URLSearchParams(window.location.search).get("pin");
   const [fase, setFase] = useState<Fase>("join");
-  const [pin, setPin] = useState("1234");
+  const [pin, setPin] = useState(pinFromQr ?? "1234");
   const [nickname, setNickname] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [correo, setCorreo] = useState("");
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [valorPorTap, setValorPorTap] = useState(1_000_000);
 
@@ -146,8 +149,12 @@ export default function Play() {
   }, [fase, send]);
 
   const onJoin = () => {
-    send({ t: "join", pin, nickname, resumeToken: resumeTokenRef.current });
+    send({ t: "join", pin, nickname, telefono, correo, resumeToken: resumeTokenRef.current });
   };
+
+  const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+  const puedeEntrar =
+    connected && nickname.trim().length > 0 && telefono.trim().length > 0 && emailValido;
 
   const onTap = (e: React.PointerEvent) => {
     if (!e.isTrusted || !roundActiveRef.current) return;
@@ -162,24 +169,49 @@ export default function Play() {
       <div className="min-h-screen flex items-center justify-center bg-archivo px-6">
         <div className="bg-manila text-archivo rounded-xl p-8 w-full max-w-sm font-body">
           <h1 className="font-display text-2xl mb-1">Subasta Activa</h1>
-          <p className="text-sm mb-6 opacity-70">Ingresa el PIN de la pantalla principal y tu apodo.</p>
-          <label className="block text-xs uppercase tracking-wide mb-1">PIN</label>
+          <p className="text-sm mb-6 opacity-70">Completa tus datos para participar en la subasta.</p>
+
+          {!pinFromQr && (
+            <>
+              <label className="block text-xs uppercase tracking-wide mb-1">PIN</label>
+              <input
+                className="w-full mb-4 px-3 py-2 rounded border border-archivo/30 font-mono tabular"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                inputMode="numeric"
+              />
+            </>
+          )}
+
+          <label className="block text-xs uppercase tracking-wide mb-1">Nombre</label>
           <input
-            className="w-full mb-4 px-3 py-2 rounded border border-archivo/30 font-mono tabular"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            inputMode="numeric"
-          />
-          <label className="block text-xs uppercase tracking-wide mb-1">Apodo</label>
-          <input
-            className="w-full mb-6 px-3 py-2 rounded border border-archivo/30"
+            className="w-full mb-4 px-3 py-2 rounded border border-archivo/30"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="Tu nombre en pantalla"
           />
+
+          <label className="block text-xs uppercase tracking-wide mb-1">Celular</label>
+          <input
+            className="w-full mb-4 px-3 py-2 rounded border border-archivo/30"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="300 123 4567"
+            inputMode="tel"
+          />
+
+          <label className="block text-xs uppercase tracking-wide mb-1">Correo</label>
+          <input
+            className="w-full mb-6 px-3 py-2 rounded border border-archivo/30"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            placeholder="correo@empresa.com"
+            type="email"
+          />
+
           <button
             className="w-full bg-sello text-manila py-3 rounded font-display disabled:opacity-40"
-            disabled={!connected || nickname.trim().length === 0}
+            disabled={!puedeEntrar}
             onClick={onJoin}
           >
             {connected ? "Entrar" : "Conectando..."}

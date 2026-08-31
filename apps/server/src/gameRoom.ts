@@ -51,7 +51,13 @@ export class GameRoom {
 
   // ---------- Conexiones ----------
 
-  joinPlayer(nickname: string, resumeToken: string | undefined, socket: WebSocket) {
+  joinPlayer(
+    nickname: string,
+    telefono: string,
+    correo: string,
+    resumeToken: string | undefined,
+    socket: WebSocket
+  ) {
     let player: PlayerConn;
     if (resumeToken) {
       const existing = [...this.state.players.values()].find((p) => p.resumeToken === resumeToken);
@@ -60,7 +66,9 @@ export class GameRoom {
         existing.nickname = nickname || existing.nickname;
         player = existing;
         this.broadcastHostState();
-        logPlayerLogin(this.state.pin, player.nickname, player.playerId).catch(() => {});
+        logPlayerLogin({ eventPin: this.state.pin, nickname: player.nickname, playerId: player.playerId, telefono, correo }).catch(
+          () => {}
+        );
         return player;
       }
     }
@@ -74,7 +82,9 @@ export class GameRoom {
     this.state.players.set(player.playerId, player);
     this.broadcastLobby();
     this.broadcastHostState();
-    logPlayerLogin(this.state.pin, player.nickname, player.playerId).catch(() => {});
+    logPlayerLogin({ eventPin: this.state.pin, nickname: player.nickname, playerId: player.playerId, telefono, correo }).catch(
+      () => {}
+    );
     return player;
   }
 

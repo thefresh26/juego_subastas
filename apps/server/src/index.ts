@@ -61,7 +61,7 @@ wssPlayer.on("connection", (socket: WebSocket) => {
         socket.send(JSON.stringify({ t: "error", code: "bad_pin", mensaje: "PIN incorrecto" }));
         return;
       }
-      const player = room.joinPlayer(msg.nickname, msg.resumeToken, socket);
+      const player = room.joinPlayer(msg.nickname, msg.telefono, msg.correo, msg.resumeToken, socket);
       playerId = player.playerId;
       socket.send(
         JSON.stringify({

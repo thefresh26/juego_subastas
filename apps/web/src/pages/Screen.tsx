@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
@@ -17,6 +18,7 @@ export default function Screen() {
   const [tapsTotales, setTapsTotales] = useState(0);
   const [sello, setSello] = useState<{ ganador: string; valorFinal: number } | null>(null);
   const [podio, setPodio] = useState<Portafolio[] | null>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
@@ -24,6 +26,7 @@ export default function Screen() {
       case "lobby":
         setPin(msg.pin as string);
         setJugadores(msg.jugadores as { playerId: string; nickname: string }[]);
+        setQrUrl(msg.qrUrl as string);
         break;
       case "round_armed":
         setPropiedad(msg.propiedad as Property);
@@ -72,10 +75,16 @@ export default function Screen() {
   }
 
   if (!propiedad) {
+    const joinUrl = qrUrl ? `${window.location.origin}${qrUrl}` : null;
     return (
       <FullScreen>
         <p className="font-mono tabular text-6xl mb-4">{pin}</p>
-        <p className="opacity-70 mb-8">Únete en /play con este PIN</p>
+        {joinUrl ? (
+          <div className="bg-manila p-4 rounded-xl mb-6">
+            <QRCodeSVG value={joinUrl} size={220} />
+          </div>
+        ) : null}
+        <p className="opacity-70 mb-8">Escanea el código QR para participar</p>
         <p className="opacity-50">{jugadores.length} jugador(es) conectado(s)</p>
       </FullScreen>
     );

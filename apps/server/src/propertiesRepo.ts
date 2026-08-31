@@ -101,11 +101,21 @@ export async function setPropertyEstado(id: string, estado: PropertyEstado): Pro
   return rowToProperty(data as PropertyRow);
 }
 
-export async function logPlayerLogin(eventPin: string, nickname: string, playerId: string): Promise<void> {
+export async function logPlayerLogin(params: {
+  eventPin: string;
+  nickname: string;
+  playerId: string;
+  telefono: string;
+  correo: string;
+}): Promise<void> {
   if (!supabaseAdmin) return;
-  const { error } = await supabaseAdmin
-    .from("player_logins")
-    .insert({ event_pin: eventPin, nickname, player_id: playerId });
+  const { error } = await supabaseAdmin.from("player_logins").insert({
+    event_pin: params.eventPin,
+    nickname: params.nickname,
+    player_id: params.playerId,
+    telefono: params.telefono,
+    correo: params.correo,
+  });
   if (error) console.error("[supabase] error registrando login de jugador:", error.message);
 }
 

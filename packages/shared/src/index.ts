@@ -64,6 +64,8 @@ export const JoinMsg = z.object({
   t: z.literal("join"),
   pin: z.string(),
   nickname: z.string().min(1).max(24),
+  telefono: z.string().min(1).max(30),
+  correo: z.string().email(),
   resumeToken: z.string().optional(),
 });
 
