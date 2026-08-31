@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev:server": "pnpm --filter @subasta/server dev",
-    "dev:web": "pnpm --filter @subasta/web dev",
+    "dev:server": "pnpm --filter @subasta/shared build && pnpm --filter @subasta/server dev",
+    "dev:web": "pnpm --filter @subasta/shared build && pnpm --filter @subasta/web dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "smoke-test": "node scripts/smoke-test.mjs"

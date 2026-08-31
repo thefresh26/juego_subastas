@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
+import { wsUrl } from "../lib/wsUrl.js";
 
-const WS_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8787/ws/screen`;
+const WS_URL = wsUrl("/ws/screen");
 
 type PlayerSummary = { playerId: string; nickname: string; taps: number; valorPujado: number };
 type Portafolio = { playerId: string; nickname: string; inmueblesAdjudicados: number; valorTotal: number; titulo?: string };

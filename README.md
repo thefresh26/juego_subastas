@@ -41,6 +41,32 @@ apps/web          React + Vite + TS + Tailwind — /screen /play /host
    cerrar, la pantalla principal muestra el sello de ADJUDICADO con el
    ganador. Puedes pulsar "Mostrar podio" para ver el ranking acumulado.
 
+## Deploy en Render (para probar desde el celular con un link real)
+
+El repo incluye `render.yaml` con dos servicios:
+
+- `subasta-server` — el servidor Node (Fastify + ws), plan gratuito.
+- `subasta-web` — el sitio estático de React/Vite.
+
+Pasos en render.com:
+
+1. New → Blueprint → conecta el repo `thefresh26/juego_subastas` → Render lee
+   `render.yaml` y propone crear los dos servicios automáticamente.
+2. Antes de aplicar, en `subasta-server` define la variable `HOST_TOKEN` con
+   un valor propio (no dejar `dev-host-token` en producción).
+3. Aplica el Blueprint y espera a que ambos servicios terminen de construir.
+4. Cuando `subasta-server` esté arriba, confirma su URL real en el dashboard
+   de Render. Si no es exactamente `subasta-server.onrender.com` (puede
+   variar si el nombre ya estaba tomado), edita la variable `VITE_WS_URL` del
+   servicio `subasta-web` con la URL correcta en formato `wss://...` y vuelve
+   a desplegar ese servicio.
+5. Abre la URL de `subasta-web` en el celular: ahí están `/play`, `/screen` y
+   `/host`.
+
+Nota: el plan gratuito de Render "duerme" el servicio tras un rato sin
+tráfico y demora unos segundos en despertar con la primera conexión — no es
+un error, es normal en el plan free.
+
 ## Qué falta para Fase 2 (robustez)
 
 - Token bucket real, `isTrusted` ya está aplicado en el tap, análisis de

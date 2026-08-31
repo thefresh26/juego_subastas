@@ -2,10 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { ServerClock } from "../lib/clock.js";
+import { wsUrl } from "../lib/wsUrl.js";
 
 type Fase = "join" | "esperando" | "armado" | "corriendo" | "fin";
 
-const WS_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8787/ws/player`;
+const WS_URL = wsUrl("/ws/player");
 
 export default function Play() {
   const clockRef = useRef(new ServerClock());

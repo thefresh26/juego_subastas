@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
+import { wsUrl } from "../lib/wsUrl.js";
 
-const WS_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8787/ws/host`;
+const WS_URL = wsUrl("/ws/host");
 
 type HostState = {
   estado: string;
