@@ -15,8 +15,10 @@ services:
       # deja de tener efecto.
       - key: HOST_TOKEN
         sync: false
+      # Node 22+ trae WebSocket nativo, que @supabase/supabase-js necesita
+      # para su cliente de Realtime (aunque no lo usemos, lo inicializa igual).
       - key: NODE_VERSION
-        value: 20.18.0
+        value: 22.11.0
       # URL del proyecto de Supabase (dato público, seguro en el repo).
       - key: SUPABASE_URL
         value: https://vazzjcgcqyxechiwrqjv.supabase.co
