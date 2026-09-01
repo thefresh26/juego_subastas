@@ -4,18 +4,35 @@ import { useSocket } from "../lib/useSocket.js";
 import { ServerClock } from "../lib/clock.js";
 import { wsUrl } from "../lib/wsUrl.js";
 
-type Fase = "join" | "esperando" | "armado" | "corriendo" | "fin";
+type Fase = "join" | "reconectando" | "esperando" | "armado" | "corriendo" | "fin";
+
+type DatosGuardados = { nickname: string; telefono: string; correo: string };
+
+function cargarDatosGuardados(): DatosGuardados | null {
+  try {
+    const raw = localStorage.getItem("subasta_player");
+    return raw ? (JSON.parse(raw) as DatosGuardados) : null;
+  } catch {
+    return null;
+  }
+}
 
 const WS_URL = wsUrl("/ws/player");
 
 export default function Play() {
   const clockRef = useRef(new ServerClock());
   const pinFromQr = new URLSearchParams(window.location.search).get("pin");
-  const [fase, setFase] = useState<Fase>("join");
+  const datosGuardados = useRef(cargarDatosGuardados()).current;
+  const tieneResumeGuardado = Boolean(localStorage.getItem("subasta_resume") && datosGuardados);
+  const [fase, setFase] = useState<Fase>(tieneResumeGuardado ? "reconectando" : "join");
   const [pin, setPin] = useState(pinFromQr ?? "1234");
-  const [nickname, setNickname] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [correo, setCorreo] = useState("");
+  const [nickname, setNickname] = useState(datosGuardados?.nickname ?? "");
+  const [telefono, setTelefono] = useState(datosGuardados?.telefono ?? "");
+  const [correo, setCorreo] = useState(datosGuardados?.correo ?? "");
+  const autoJoinIntentadoRef = useRef(false);
+  const nicknameRef = useRef(nickname);
+  const telefonoRef = useRef(telefono);
+  const correoRef = useRef(correo);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [valorPorTap, setValorPorTap] = useState(1_000_000);
 
@@ -53,6 +70,10 @@ export default function Play() {
         setValorPorTap(msg.valorPorTap as number);
         resumeTokenRef.current = msg.resumeToken as string;
         localStorage.setItem("subasta_resume", msg.resumeToken as string);
+        localStorage.setItem(
+          "subasta_player",
+          JSON.stringify({ nickname: nicknameRef.current, telefono: telefonoRef.current, correo: correoRef.current })
+        );
         setFase("esperando");
         break;
       }
@@ -95,6 +116,7 @@ export default function Play() {
       }
       case "error": {
         console.warn("[server error]", msg);
+        setFase((f) => (f === "reconectando" ? "join" : f));
         break;
       }
     }
@@ -155,8 +177,29 @@ export default function Play() {
   }, [fase, send]);
 
   const onJoin = () => {
+    nicknameRef.current = nickname;
+    telefonoRef.current = telefono;
+    correoRef.current = correo;
     send({ t: "join", pin, nickname, telefono, correo, resumeToken: resumeTokenRef.current });
   };
+
+  // Si ya se había registrado antes en este mismo celular (mismo navegador),
+  // se reconecta solo sin pedirle de nuevo el formulario.
+  useEffect(() => {
+    if (!connected || !tieneResumeGuardado || autoJoinIntentadoRef.current) return;
+    autoJoinIntentadoRef.current = true;
+    nicknameRef.current = datosGuardados!.nickname;
+    telefonoRef.current = datosGuardados!.telefono;
+    correoRef.current = datosGuardados!.correo;
+    send({
+      t: "join",
+      pin,
+      nickname: datosGuardados!.nickname,
+      telefono: datosGuardados!.telefono,
+      correo: datosGuardados!.correo,
+      resumeToken: resumeTokenRef.current,
+    });
+  }, [connected, tieneResumeGuardado, datosGuardados, pin, send]);
 
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
   const puedeEntrar =
@@ -175,6 +218,15 @@ export default function Play() {
     setCoins((cs) => [...cs, { id, x }]);
     setTimeout(() => setCoins((cs) => cs.filter((c) => c.id !== id)), 900);
   };
+
+  if (fase === "reconectando") {
+    return (
+      <Centered>
+        <p className="font-display text-xl">Reconectando, {nickname}…</p>
+        <p className="opacity-70 mt-2">Un momento, ya casi entras de nuevo a la subasta.</p>
+      </Centered>
+    );
+  }
 
   if (fase === "join") {
     return (
