@@ -243,16 +243,23 @@ export default function Play() {
   if (fase === "corriendo") {
     return (
       <div
-        className="min-h-screen bg-sello select-none"
+        className="min-h-screen bg-sello select-none flex flex-col items-center justify-center gap-8"
         style={{ touchAction: "manipulation", overscrollBehavior: "none", WebkitTapHighlightColor: "transparent" }}
         onPointerDown={onTap}
       >
-        <div className="flex flex-col items-center justify-center h-screen pointer-events-none">
+        <div className="flex flex-col items-center pointer-events-none">
           <span className="font-mono tabular text-manila text-6xl font-bold">{misTaps}</span>
           <span className="text-manila/80 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
           <span className="text-manila/60 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
           <span className="text-manila/40 text-xs mt-1">posición #{miPosicion || "-"} · servidor: {servidorTaps}</span>
         </div>
+
+        <button
+          type="button"
+          className="w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide shadow-[0_0_0_10px_rgba(0,0,0,0.08)] active:scale-90 transition-transform"
+        >
+          ¡PUJA!
+        </button>
       </div>
     );
   }
