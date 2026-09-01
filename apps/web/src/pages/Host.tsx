@@ -4,6 +4,7 @@ import type { Property, PropertyInput } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
 import { supabase } from "../lib/supabaseClient.js";
+import { useFlip } from "../lib/useFlip.js";
 import BrandMark from "../components/BrandMark.js";
 
 const WS_URL = wsUrl("/ws/host");
@@ -95,6 +96,7 @@ export default function Host() {
   }, []);
 
   const { send, connected } = useSocket(WS_URL, onMessage);
+  const rankingFlipRef = useFlip(liveTick?.top.map((p) => p.playerId) ?? []);
 
   const joinWithToken = useCallback(
     (t: string) => {
@@ -233,7 +235,7 @@ export default function Host() {
   // ---------- Pantalla de login ----------
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-archivo text-manila font-body">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body">
         <div className="bg-manila text-archivo rounded-xl p-8 w-full max-w-sm">
           <BrandMark className="w-12 h-12 mb-3" />
           <h1 className="font-display text-2xl mb-4">Consola del presentador</h1>
@@ -259,7 +261,7 @@ export default function Host() {
               />
               {loginError && <p className="text-sello text-sm mb-3">{loginError}</p>}
               <button
-                className="w-full bg-azul text-manila py-3 rounded font-display disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-azul to-navy3 text-manila py-3 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!connected || loggingIn || !email || !password}
                 onClick={loginConSupabase}
               >
@@ -278,7 +280,7 @@ export default function Host() {
                 placeholder="Token"
               />
               <button
-                className="w-full bg-azul text-manila py-3 rounded font-display"
+                className="w-full bg-gradient-to-r from-azul to-navy3 text-manila py-3 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!connected}
                 onClick={loginConToken}
               >
@@ -296,12 +298,12 @@ export default function Host() {
   const adjudicadas = state?.properties.filter((p) => p.estado === "adjudicado") ?? [];
 
   return (
-    <div className="min-h-screen bg-archivo text-manila font-body p-8">
+    <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body p-8">
       <div className="flex items-start justify-between mb-1">
         <h1 className="font-display text-2xl">Consola del presentador</h1>
         <div className="flex items-center gap-2">
           <button
-            className="bg-oro text-archivo px-3 py-1.5 rounded text-sm font-display"
+            className="bg-oro text-archivo px-3 py-1.5 rounded text-sm font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={() => setShowAdminForm(true)}
           >
             + Nuevo administrador
@@ -321,7 +323,7 @@ export default function Host() {
 
       {state?.pin && (
         <div className="bg-manila/10 rounded-xl p-4 mb-6 flex items-center gap-4">
-          <div className="bg-manila p-2 rounded-lg shrink-0">
+          <div className="qr-border bg-manila p-2 rounded-lg shrink-0">
             <QRCodeSVG value={joinUrl(state.pin)} size={110} />
           </div>
           <div className="flex-1">
@@ -333,10 +335,12 @@ export default function Host() {
             <p className="text-xs font-mono opacity-60 break-all mb-3">{joinUrl(state.pin)}</p>
             <div className="flex gap-2">
               <button
-                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm"
+                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm overflow-hidden"
                 onClick={() => copiarEnlace(state.pin)}
               >
-                {copiado ? "¡Copiado!" : "Copiar enlace"}
+                <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
+                  {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
+                </span>
               </button>
               {canShare && (
                 <button
@@ -378,11 +382,12 @@ export default function Host() {
           </p>
 
           {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-            <div className="flex flex-col gap-1 mb-4">
+            <div ref={rankingFlipRef} className="flex flex-col gap-1 mb-4">
               {liveTick.top.map((p, i) => (
                 <div
                   key={p.playerId}
-                  className={`flex justify-between px-3 py-1.5 rounded text-sm ${
+                  data-flip-key={p.playerId}
+                  className={`flex justify-between px-3 py-1.5 rounded text-sm transition-colors duration-300 ${
                     i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
                   }`}
                 >
@@ -400,13 +405,13 @@ export default function Host() {
 
           <div className="flex gap-2">
             <button
-              className="bg-azul text-manila px-4 py-2 rounded font-display"
+              className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
               onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
             >
               Repetir ronda
             </button>
             <button
-              className="bg-sello/80 text-manila px-4 py-2 rounded font-display"
+              className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
               onClick={() => send({ t: "host:abort" })}
             >
               Abortar
@@ -420,7 +425,7 @@ export default function Host() {
             {disponibles.map((p) => (
               <button
                 key={p.id}
-                className="bg-manila text-archivo rounded-lg p-4 text-left hover:bg-oro transition"
+                className="bg-manila text-archivo rounded-lg p-4 text-left transition-all duration-150 ease-out hover:bg-oro hover:scale-105 active:scale-95"
                 onClick={() => send({ t: "host:arm", propertyId: p.id })}
               >
                 <p className="font-display">{p.nombre}</p>
@@ -435,7 +440,10 @@ export default function Host() {
       )}
 
       <div className="flex gap-3 mb-8">
-        <button className="bg-oro text-archivo px-4 py-2 rounded font-display" onClick={openCreateForm}>
+        <button
+          className="bg-oro text-archivo px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          onClick={openCreateForm}
+        >
           + Nuevo inmueble
         </button>
       </div>
@@ -516,8 +524,8 @@ export default function Host() {
 
       {/* ---------- Modal crear/editar inmueble ---------- */}
       {showForm && (
-        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4">
-          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4 modal-backdrop-in">
+          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto modal-panel-in">
             <h2 className="font-display text-xl mb-4">{editingId ? "Editar inmueble" : "Nuevo inmueble"}</h2>
             <div className="flex flex-col gap-3">
               <input
@@ -575,7 +583,7 @@ export default function Host() {
             </div>
             <div className="flex gap-2 mt-5">
               <button
-                className="bg-azul text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
+                className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display flex-1 transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!form.nombre || !form.ciudad || !form.tipo || !form.matriculaInmobiliaria || !form.areaM2 || !form.avaluo}
                 onClick={submitForm}
               >
@@ -591,8 +599,8 @@ export default function Host() {
 
       {/* ---------- Modal lista de participantes ---------- */}
       {showJugadores && (
-        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4">
-          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4 modal-backdrop-in">
+          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto modal-panel-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-xl">Participantes ({state?.jugadores.length ?? 0})</h2>
               <button className="text-sm underline" onClick={() => setShowJugadores(false)}>
@@ -629,8 +637,8 @@ export default function Host() {
 
       {/* ---------- Modal crear administrador ---------- */}
       {showAdminForm && (
-        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4">
-          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-sm">
+        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4 modal-backdrop-in">
+          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-sm modal-panel-in">
             <h2 className="font-display text-xl mb-1">Nuevo administrador</h2>
             <p className="text-sm opacity-70 mb-4">
               Se crea directamente en Supabase Auth y puede entrar a esta consola de inmediato.
@@ -663,7 +671,7 @@ export default function Host() {
 
             <div className="flex gap-2">
               <button
-                className="bg-azul text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
+                className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display flex-1 transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!emailAdminValido || !passwordValida || creandoAdmin}
                 onClick={crearAdmin}
               >

@@ -12,18 +12,186 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
-/* Moneditas que suben y se desvanecen con cada tap en /play. */
+/* Moneditas que suben y se desvanecen con cada tap en /play.
+   El ángulo final y la duración vienen de variables por moneda
+   (--coin-rot, --coin-duration) para que no se vean todas idénticas. */
 @keyframes coin-float {
   0% {
     transform: translateY(0) scale(0.6) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: translateY(-160px) scale(1.1) rotate(25deg);
+    transform: translateY(-160px) scale(1.1) rotate(var(--coin-rot, 25deg));
     opacity: 0;
   }
 }
 
 .coin-float {
-  animation: coin-float 900ms ease-out forwards;
+  animation-name: coin-float;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-duration: var(--coin-duration, 900ms);
+}
+
+/* Glow pulsante en el botón ¡PUJA! mientras la ronda está corriendo.
+   Solo toca box-shadow: no interfiere con el onPointerDown del tap. */
+@keyframes puja-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 10px rgba(0, 0, 0, 0.08),
+      0 0 0 0 rgba(245, 168, 0, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 10px rgba(0, 0, 0, 0.08),
+      0 0 34px 12px rgba(245, 168, 0, 0.55);
+  }
+}
+
+.puja-glow {
+  animation: puja-glow 1.6s ease-in-out infinite;
+}
+
+/* Pop de entrada para el número de cuenta regresiva en "armado":
+   se relanza en cada segundo porque el número cambia de key. */
+@keyframes countdown-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.countdown-pop {
+  animation: countdown-pop 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Entrada del indicador "vas ganando" / "va ganando X" cada vez que cambia el líder. */
+@keyframes leader-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.leader-pop {
+  animation: leader-pop 300ms ease-out;
+}
+
+/* Entrada con overshoot para resultados de ronda y el sello "ADJUDICADO". */
+@keyframes scale-in-overshoot {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-in-overshoot {
+  animation: scale-in-overshoot 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Salto del contador de taps del cliente en cada tap (se relanza por key). */
+@keyframes tap-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tap-pop {
+  animation: tap-pop 180ms ease-out;
+}
+
+/* Fade + slide sutil al entrar a cada pantalla completa (join, esperando,
+   armado, corriendo, fin en /play). */
+@keyframes phase-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.phase-fade-in {
+  animation: phase-fade-in 350ms ease-out;
+}
+
+/* Borde animado (resplandor oro/azul recorriendo el marco) para los QR
+   de registro, tanto en la consola del presentador como en /screen. */
+@keyframes qr-border-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.qr-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.qr-border::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, theme("colors.oro") 0deg, theme("colors.azul") 180deg, theme("colors.oro") 360deg);
+  animation: qr-border-spin 5s linear infinite;
+  z-index: -1;
+}
+
+/* Fade + scale-in para los modales (fixed inset-0) en vez de aparecer de golpe. */
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-backdrop-in {
+  animation: modal-backdrop-in 200ms ease-out;
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-panel-in {
+  animation: modal-panel-in 220ms ease-out;
 }

@@ -4,6 +4,7 @@ import { useSocket } from "../lib/useSocket.js";
 import { ServerClock } from "../lib/clock.js";
 import { wsUrl } from "../lib/wsUrl.js";
 import BrandMark from "../components/BrandMark.js";
+import BarraTiempo from "../components/BarraTiempo.js";
 
 type Fase = "join" | "reconectando" | "esperando" | "armado" | "corriendo" | "fin";
 
@@ -48,7 +49,7 @@ export default function Play() {
   const [servidorTaps, setServidorTaps] = useState(0);
   const [miPosicion, setMiPosicion] = useState(0);
   const [lider, setLider] = useState<{ nickname: string; taps: number } | null>(null);
-  const [coins, setCoins] = useState<{ id: number; x: number }[]>([]);
+  const [coins, setCoins] = useState<{ id: number; x: number; rot: number; duracion: number }[]>([]);
   const coinIdRef = useRef(0);
   const [resultado, setResultado] = useState<{
     ganador: { nickname: string; valorFinal: number } | null;
@@ -214,10 +215,13 @@ export default function Play() {
     if (navigator.vibrate) navigator.vibrate(8);
 
     // Solo visual: una monedita que sube y se desvanece con cada tap.
+    // Ángulo final y duración varían para que no se vean todas idénticas.
     const id = coinIdRef.current++;
     const x = (Math.random() - 0.5) * 160; // desplazamiento horizontal aleatorio
-    setCoins((cs) => [...cs, { id, x }]);
-    setTimeout(() => setCoins((cs) => cs.filter((c) => c.id !== id)), 900);
+    const rot = (Math.random() - 0.5) * 70; // -35° a 35°, en cualquier sentido
+    const duracion = 700 + Math.random() * 400; // 700-1100ms
+    setCoins((cs) => [...cs, { id, x, rot, duracion }]);
+    setTimeout(() => setCoins((cs) => cs.filter((c) => c.id !== id)), duracion + 50);
   };
 
   if (fase === "reconectando") {
@@ -231,7 +235,7 @@ export default function Play() {
 
   if (fase === "join") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-archivo px-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-archivo via-navy3 to-archivo px-6 phase-fade-in">
         <div className="bg-manila text-archivo rounded-xl p-8 w-full max-w-sm font-body">
           <BrandMark className="w-12 h-12 mb-3" />
           <h1 className="font-display text-2xl mb-1">Subasta Activa</h1>
@@ -264,7 +268,7 @@ export default function Play() {
           />
 
           <button
-            className="w-full bg-azul text-manila py-3 rounded font-display disabled:opacity-40"
+            className="w-full bg-gradient-to-r from-azul to-navy3 text-manila py-3 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:active:scale-100"
             disabled={!puedeEntrar}
             onClick={onJoin}
           >
@@ -295,7 +299,9 @@ export default function Play() {
           />
         )}
         <p className="font-mono text-sm uppercase tracking-wide opacity-70">{propiedad?.nombre}</p>
-        <p className="font-display text-7xl tabular mt-4">{countdown > 0 ? countdown : "¡YA!"}</p>
+        <p key={countdown} className="font-display text-7xl tabular mt-4 countdown-pop">
+          {countdown > 0 ? countdown : "¡YA!"}
+        </p>
         <p className="mt-4 opacity-70">Prepara el pulgar.</p>
       </Centered>
     );
@@ -305,7 +311,7 @@ export default function Play() {
     const voyGanando = lider && lider.nickname === nickname;
     return (
       <div
-        className="min-h-screen bg-azul select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden"
+        className="min-h-screen bg-gradient-to-b from-azul to-navy3 select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden phase-fade-in"
         style={{ touchAction: "manipulation", overscrollBehavior: "none", WebkitTapHighlightColor: "transparent" }}
         onPointerDown={onTap}
       >
@@ -317,12 +323,20 @@ export default function Play() {
               className="w-28 h-20 object-cover rounded-lg mb-3 border-2 border-manila/30"
             />
           )}
-          <span className="font-mono tabular text-manila text-6xl font-bold">{misTaps}</span>
+          <span key={misTaps} className="font-mono tabular text-manila text-6xl font-bold tap-pop">
+            {misTaps}
+          </span>
           <span className="text-manila/80 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
           <span className="text-manila/60 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
+          <div className="w-40 mt-2">
+            <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} />
+          </div>
           <span className="text-manila/40 text-xs mt-1">posición #{miPosicion || "-"} · servidor: {servidorTaps}</span>
           {lider && (
-            <span className={`text-sm mt-3 font-display ${voyGanando ? "text-oro" : "text-manila/70"}`}>
+            <span
+              key={lider.nickname}
+              className={`text-sm mt-3 font-display leader-pop ${voyGanando ? "text-oro" : "text-manila/70"}`}
+            >
               {voyGanando ? "🏆 ¡Vas ganando!" : `🏆 Va ganando: ${lider.nickname}`}
             </span>
           )}
@@ -330,14 +344,21 @@ export default function Play() {
 
         <button
           type="button"
-          className="w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide shadow-[0_0_0_10px_rgba(0,0,0,0.08)] active:scale-90 transition-transform relative"
+          className="puja-glow w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide active:scale-90 hover:scale-105 transition-transform relative"
         >
           ¡PUJA!
           {coins.map((c) => (
             <span
               key={c.id}
               className="coin-float absolute text-3xl pointer-events-none"
-              style={{ left: `calc(50% + ${c.x}px)`, bottom: "50%" }}
+              style={
+                {
+                  left: `calc(50% + ${c.x}px)`,
+                  bottom: "50%",
+                  "--coin-rot": `${c.rot}deg`,
+                  "--coin-duration": `${c.duracion}ms`,
+                } as React.CSSProperties
+              }
             >
               🪙
             </span>
@@ -350,26 +371,28 @@ export default function Play() {
   // fase === "fin"
   return (
     <Centered>
-      <p className="font-display text-2xl mb-2">
-        {resultado?.ganador ? "Ronda cerrada" : "Ronda cerrada, sin adjudicación"}
-      </p>
-      {resultado?.ganador && (
-        <p className="opacity-80 mb-4">
-          Ganó <span className="text-oro font-semibold">{resultado.ganador.nickname}</span> con{" "}
-          {resultado.ganador.valorFinal.toLocaleString("es-CO")} COP
+      <div className="scale-in-overshoot">
+        <p className="font-display text-2xl mb-2">
+          {resultado?.ganador ? "Ronda cerrada" : "Ronda cerrada, sin adjudicación"}
         </p>
-      )}
-      <p className="font-mono tabular">Tus taps válidos: {resultado?.misTaps ?? 0}</p>
-      {(resultado?.recortados ?? 0) > 0 && (
-        <p className="text-sm opacity-60 mt-1">{resultado?.recortados} taps descartados (fuera de ventana)</p>
-      )}
+        {resultado?.ganador && (
+          <p className="opacity-80 mb-4">
+            Ganó <span className="text-oro font-semibold">{resultado.ganador.nickname}</span> con{" "}
+            {resultado.ganador.valorFinal.toLocaleString("es-CO")} COP
+          </p>
+        )}
+        <p className="font-mono tabular">Tus taps válidos: {resultado?.misTaps ?? 0}</p>
+        {(resultado?.recortados ?? 0) > 0 && (
+          <p className="text-sm opacity-60 mt-1">{resultado?.recortados} taps descartados (fuera de ventana)</p>
+        )}
+      </div>
     </Centered>
   );
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-archivo text-manila px-6 font-body">
+    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila px-6 font-body phase-fade-in">
       {children}
     </div>
   );
