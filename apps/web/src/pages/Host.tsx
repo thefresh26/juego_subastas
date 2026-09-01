@@ -333,9 +333,6 @@ export default function Host() {
       )}
 
       <div className="flex gap-3 mb-8">
-        <button className="bg-oro text-archivo px-4 py-2 rounded font-display" onClick={() => send({ t: "host:podium" })}>
-          Mostrar podio
-        </button>
         <button className="bg-manila/20 px-4 py-2 rounded font-display" onClick={openCreateForm}>
           + Nuevo inmueble
         </button>
