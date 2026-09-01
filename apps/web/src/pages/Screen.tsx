@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
+import BrandMark from "../components/BrandMark.js";
 
 const WS_URL = wsUrl("/ws/screen");
 
@@ -78,6 +79,7 @@ export default function Screen() {
     const joinUrl = qrUrl ? `${window.location.origin}${qrUrl}` : null;
     return (
       <FullScreen>
+        <BrandMark className="w-14 h-14 mb-6" />
         <p className="font-mono tabular text-6xl mb-4">{pin}</p>
         {joinUrl ? (
           <div className="bg-manila p-4 rounded-xl mb-6">

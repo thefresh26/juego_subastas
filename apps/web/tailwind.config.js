@@ -4,16 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        archivo: "#1B1D1A",
-        manila: "#D9CDB0",
-        sello: "#B2261E",
-        esmeralda: "#0F6B4F",
-        oro: "#C89B3C",
+        // Paleta tomada del sistema comercial de Activos por Colombia
+        // (navy/dorado corporativo), para que el juego se vea de la misma
+        // familia visual que el resto de las herramientas internas.
+        archivo: "#0D1F3C", // navy — fondo principal
+        navy3: "#1E3A68", // navy claro — superficies secundarias
+        manila: "#F4F6FA", // "off" — tarjetas claras / texto sobre fondo oscuro
+        sello: "#E03535", // rojo corporativo — alertas, sello de "adjudicado"
+        esmeralda: "#1AB87A", // verde corporativo — estados positivos
+        oro: "#F5A800", // amarillo/dorado corporativo — acento principal
+        azul: "#1A5BBF", // azul corporativo — acento secundario
       },
       fontFamily: {
-        display: ["Bricolage Grotesque", "system-ui", "sans-serif"],
-        body: ["Public Sans", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        display: ["Montserrat", "system-ui", "sans-serif"],
+        body: ["Open Sans", "system-ui", "sans-serif"],
+        mono: ["'Courier New'", "monospace"],
       },
     },
   },

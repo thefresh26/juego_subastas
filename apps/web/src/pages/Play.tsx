@@ -3,6 +3,7 @@ import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { ServerClock } from "../lib/clock.js";
 import { wsUrl } from "../lib/wsUrl.js";
+import BrandMark from "../components/BrandMark.js";
 
 type Fase = "join" | "reconectando" | "esperando" | "armado" | "corriendo" | "fin";
 
@@ -232,6 +233,7 @@ export default function Play() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-archivo px-6">
         <div className="bg-manila text-archivo rounded-xl p-8 w-full max-w-sm font-body">
+          <BrandMark className="w-12 h-12 mb-3" />
           <h1 className="font-display text-2xl mb-1">Subasta Activa</h1>
           <p className="text-sm mb-6 opacity-70">Completa tus datos para participar en la subasta.</p>
 

@@ -4,6 +4,7 @@ import type { Property, PropertyInput } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
 import { supabase } from "../lib/supabaseClient.js";
+import BrandMark from "../components/BrandMark.js";
 
 const WS_URL = wsUrl("/ws/host");
 
@@ -234,6 +235,7 @@ export default function Host() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-archivo text-manila font-body">
         <div className="bg-manila text-archivo rounded-xl p-8 w-full max-w-sm">
+          <BrandMark className="w-12 h-12 mb-3" />
           <h1 className="font-display text-2xl mb-4">Consola del presentador</h1>
 
           {supabase ? (
