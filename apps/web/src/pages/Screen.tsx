@@ -102,6 +102,13 @@ export default function Screen() {
         </div>
       ) : (
         <>
+          {propiedad.imagenUrl && (
+            <img
+              src={propiedad.imagenUrl}
+              alt={propiedad.nombre}
+              className="w-80 h-52 object-cover rounded-xl mb-4 border-4 border-manila/20"
+            />
+          )}
           <p className="font-mono text-sm uppercase opacity-70">{propiedad.matriculaInmobiliaria}</p>
           <h2 className="font-display text-3xl mt-1">{propiedad.nombre}</h2>
           <p className="opacity-70">{propiedad.ciudad} · {propiedad.areaM2} m² · avalúo {propiedad.avaluo.toLocaleString("es-CO")} COP</p>

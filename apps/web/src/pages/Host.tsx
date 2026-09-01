@@ -352,7 +352,16 @@ export default function Host() {
 
       {state?.rondaActual ? (
         <div className="bg-manila/10 rounded-xl p-4 mb-6">
-          <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
+          <div className="flex items-start gap-3 mb-1">
+            {state.rondaActual.propiedad.imagenUrl && (
+              <img
+                src={state.rondaActual.propiedad.imagenUrl}
+                alt={state.rondaActual.propiedad.nombre}
+                className="w-20 h-14 object-cover rounded border border-manila/20 shrink-0"
+              />
+            )}
+            <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
+          </div>
           <p className="opacity-70 text-sm mb-3">
             ronda: {state.rondaActual.estado}
             {liveTick && liveTick.roundId === state.rondaActual.roundId && (

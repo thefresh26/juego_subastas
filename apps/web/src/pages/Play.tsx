@@ -245,6 +245,13 @@ export default function Play() {
   if (fase === "armado") {
     return (
       <Centered>
+        {propiedad?.imagenUrl && (
+          <img
+            src={propiedad.imagenUrl}
+            alt={propiedad.nombre}
+            className="w-64 h-40 object-cover rounded-xl mb-4 border-2 border-manila/20"
+          />
+        )}
         <p className="font-mono text-sm uppercase tracking-wide opacity-70">{propiedad?.nombre}</p>
         <p className="font-display text-7xl tabular mt-4">{countdown > 0 ? countdown : "¡YA!"}</p>
         <p className="mt-4 opacity-70">Prepara el pulgar.</p>
@@ -261,6 +268,13 @@ export default function Play() {
         onPointerDown={onTap}
       >
         <div className="flex flex-col items-center pointer-events-none">
+          {propiedad?.imagenUrl && (
+            <img
+              src={propiedad.imagenUrl}
+              alt={propiedad.nombre}
+              className="w-28 h-20 object-cover rounded-lg mb-3 border-2 border-manila/30"
+            />
+          )}
           <span className="font-mono tabular text-manila text-6xl font-bold">{misTaps}</span>
           <span className="text-manila/80 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
           <span className="text-manila/60 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
