@@ -116,6 +116,8 @@ export const TickToPlayerMsg = z.object({
   misTaps: z.number().int().nonnegative(),
   miPosicion: z.number().int().positive(),
   valorActual: z.number().nonnegative(),
+  // Quién va ganando en este momento (solo informativo/visual para el jugador).
+  lider: z.object({ nickname: z.string(), taps: z.number().int().nonnegative() }).nullable(),
 });
 
 export const RoundEndToPlayerMsg = z.object({

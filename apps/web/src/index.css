@@ -11,3 +11,19 @@ body,
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Moneditas que suben y se desvanecen con cada tap en /play. */
+@keyframes coin-float {
+  0% {
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-160px) scale(1.1) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.coin-float {
+  animation: coin-float 900ms ease-out forwards;
+}

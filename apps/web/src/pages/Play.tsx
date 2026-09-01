@@ -29,6 +29,9 @@ export default function Play() {
   const [misTaps, setMisTaps] = useState(0); // conteo optimista local
   const [servidorTaps, setServidorTaps] = useState(0);
   const [miPosicion, setMiPosicion] = useState(0);
+  const [lider, setLider] = useState<{ nickname: string; taps: number } | null>(null);
+  const [coins, setCoins] = useState<{ id: number; x: number }[]>([]);
+  const coinIdRef = useRef(0);
   const [resultado, setResultado] = useState<{
     ganador: { nickname: string; valorFinal: number } | null;
     misTaps: number;
@@ -64,6 +67,8 @@ export default function Play() {
         tapTimestampsRef.current = [];
         setMisTaps(0);
         setServidorTaps(0);
+        setLider(null);
+        setCoins([]);
         setFase("armado");
         break;
       }
@@ -71,6 +76,7 @@ export default function Play() {
         setRemainingMs(msg.remainingMs as number);
         setServidorTaps(msg.misTaps as number);
         setMiPosicion(msg.miPosicion as number);
+        setLider((msg.lider as { nickname: string; taps: number } | null) ?? null);
         break;
       }
       case "round_end": {
@@ -162,6 +168,12 @@ export default function Play() {
     tapTimestampsRef.current.push(Date.now());
     setMisTaps((n) => n + 1);
     if (navigator.vibrate) navigator.vibrate(8);
+
+    // Solo visual: una monedita que sube y se desvanece con cada tap.
+    const id = coinIdRef.current++;
+    const x = (Math.random() - 0.5) * 160; // desplazamiento horizontal aleatorio
+    setCoins((cs) => [...cs, { id, x }]);
+    setTimeout(() => setCoins((cs) => cs.filter((c) => c.id !== id)), 900);
   };
 
   if (fase === "join") {
@@ -241,9 +253,10 @@ export default function Play() {
   }
 
   if (fase === "corriendo") {
+    const voyGanando = lider && lider.nickname === nickname;
     return (
       <div
-        className="min-h-screen bg-sello select-none flex flex-col items-center justify-center gap-8"
+        className="min-h-screen bg-sello select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden"
         style={{ touchAction: "manipulation", overscrollBehavior: "none", WebkitTapHighlightColor: "transparent" }}
         onPointerDown={onTap}
       >
@@ -252,13 +265,27 @@ export default function Play() {
           <span className="text-manila/80 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
           <span className="text-manila/60 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
           <span className="text-manila/40 text-xs mt-1">posición #{miPosicion || "-"} · servidor: {servidorTaps}</span>
+          {lider && (
+            <span className={`text-sm mt-3 font-display ${voyGanando ? "text-oro" : "text-manila/70"}`}>
+              {voyGanando ? "🏆 ¡Vas ganando!" : `🏆 Va ganando: ${lider.nickname}`}
+            </span>
+          )}
         </div>
 
         <button
           type="button"
-          className="w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide shadow-[0_0_0_10px_rgba(0,0,0,0.08)] active:scale-90 transition-transform"
+          className="w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide shadow-[0_0_0_10px_rgba(0,0,0,0.08)] active:scale-90 transition-transform relative"
         >
           ¡PUJA!
+          {coins.map((c) => (
+            <span
+              key={c.id}
+              className="coin-float absolute text-3xl pointer-events-none"
+              style={{ left: `calc(50% + ${c.x}px)`, bottom: "50%" }}
+            >
+              🪙
+            </span>
+          ))}
         </button>
       </div>
     );

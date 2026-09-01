@@ -380,6 +380,7 @@ export class GameRoom {
     if (!round || round.estado !== "running") return;
     const remainingMs = Math.max(0, round.startAt + round.duracionMs - this.now());
     const ranking = this.rankRound(round);
+    const lider = ranking.length > 0 && ranking[0].taps > 0 ? { nickname: ranking[0].nickname, taps: ranking[0].taps } : null;
 
     for (const p of this.state.players.values()) {
       const misTaps = round.counts.get(p.playerId) ?? 0;
@@ -391,6 +392,7 @@ export class GameRoom {
         misTaps,
         miPosicion,
         valorActual: misTaps * this.state.valorPorTap,
+        lider,
       });
     }
 
