@@ -54,10 +54,30 @@ export default function Host() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PropertyInput>(EMPTY_FORM);
 
+  // --- Crear nuevos administradores ---
+  const [showAdminForm, setShowAdminForm] = useState(false);
+  const [nuevoAdminEmail, setNuevoAdminEmail] = useState("");
+  const [nuevoAdminPassword, setNuevoAdminPassword] = useState("");
+  const [adminMsg, setAdminMsg] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  const [creandoAdmin, setCreandoAdmin] = useState(false);
+
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
     if (msg.t === "host:state") setState(msg as unknown as HostState);
-    if (msg.t === "error") setActionError(String(msg.mensaje ?? "Ocurrió un error"));
+    if (msg.t === "host:admin_created") {
+      setCreandoAdmin(false);
+      setAdminMsg({ tipo: "ok", texto: `Administrador creado: ${msg.email}` });
+      setNuevoAdminEmail("");
+      setNuevoAdminPassword("");
+    }
+    if (msg.t === "error") {
+      setCreandoAdmin(false);
+      if (msg.code === "admin_create_failed") {
+        setAdminMsg({ tipo: "error", texto: String(msg.mensaje ?? "No se pudo crear el administrador") });
+      } else {
+        setActionError(String(msg.mensaje ?? "Ocurrió un error"));
+      }
+    }
   }, []);
 
   const { send, connected } = useSocket(WS_URL, onMessage);
@@ -187,6 +207,15 @@ export default function Host() {
     }
   };
 
+  const crearAdmin = () => {
+    setAdminMsg(null);
+    setCreandoAdmin(true);
+    send({ t: "host:create_admin", email: nuevoAdminEmail, password: nuevoAdminPassword });
+  };
+
+  const passwordValida = nuevoAdminPassword.length >= 6;
+  const emailAdminValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nuevoAdminEmail);
+
   // ---------- Pantalla de login ----------
   if (!authed) {
     return (
@@ -255,9 +284,14 @@ export default function Host() {
     <div className="min-h-screen bg-archivo text-manila font-body p-8">
       <div className="flex items-start justify-between mb-1">
         <h1 className="font-display text-2xl">Consola del presentador</h1>
-        <button className="text-sm opacity-70 underline" onClick={logout}>
-          Cerrar sesión
-        </button>
+        <div className="flex items-center gap-4">
+          <button className="text-sm opacity-70 underline" onClick={() => setShowAdminForm(true)}>
+            + Nuevo administrador
+          </button>
+          <button className="text-sm opacity-70 underline" onClick={logout}>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
       <p className="opacity-70 mb-4">
         PIN: <span className="font-mono tabular">{state?.pin ?? "----"}</span> · estado:{" "}
@@ -524,6 +558,62 @@ export default function Host() {
               {(state?.jugadores.length ?? 0) === 0 && (
                 <p className="opacity-50 text-sm">Todavía no se ha registrado nadie.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- Modal crear administrador ---------- */}
+      {showAdminForm && (
+        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4">
+          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-sm">
+            <h2 className="font-display text-xl mb-1">Nuevo administrador</h2>
+            <p className="text-sm opacity-70 mb-4">
+              Se crea directamente en Supabase Auth y puede entrar a esta consola de inmediato.
+            </p>
+
+            {adminMsg && (
+              <p className={`text-sm mb-3 ${adminMsg.tipo === "ok" ? "text-green-700" : "text-sello"}`}>
+                {adminMsg.texto}
+              </p>
+            )}
+
+            <label className="block text-xs uppercase tracking-wide mb-1">Correo</label>
+            <input
+              className="w-full mb-3 px-3 py-2 rounded border border-archivo/30"
+              type="email"
+              value={nuevoAdminEmail}
+              onChange={(e) => setNuevoAdminEmail(e.target.value)}
+              placeholder="nuevo.admin@empresa.com"
+            />
+
+            <label className="block text-xs uppercase tracking-wide mb-1">Contraseña</label>
+            <input
+              className="w-full mb-1 px-3 py-2 rounded border border-archivo/30"
+              type="password"
+              value={nuevoAdminPassword}
+              onChange={(e) => setNuevoAdminPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+            />
+            <p className="text-xs opacity-50 mb-4">Mínimo 6 caracteres.</p>
+
+            <div className="flex gap-2">
+              <button
+                className="bg-sello text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
+                disabled={!emailAdminValido || !passwordValida || creandoAdmin}
+                onClick={crearAdmin}
+              >
+                {creandoAdmin ? "Creando..." : "Crear administrador"}
+              </button>
+              <button
+                className="bg-archivo/10 px-4 py-2 rounded font-display"
+                onClick={() => {
+                  setShowAdminForm(false);
+                  setAdminMsg(null);
+                }}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

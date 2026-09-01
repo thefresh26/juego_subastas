@@ -40,3 +40,25 @@ export async function verifyAdminToken(token: string): Promise<{ ok: boolean; em
   if (error || !data.user) return { ok: false };
   return { ok: true, email: data.user.email ?? undefined };
 }
+
+/**
+ * Crea un nuevo usuario admin directamente en Supabase Auth (con la
+ * service_role key, que tiene permiso para esto). Queda auto-confirmado
+ * (email_confirm: true) para que pueda iniciar sesión de inmediato en
+ * /host sin tener que confirmar por correo.
+ */
+export async function createAdminUser(
+  email: string,
+  password: string
+): Promise<{ ok: boolean; error?: string }> {
+  if (!supabaseAdmin) {
+    return { ok: false, error: "Base de datos no configurada (SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)" };
+  }
+  const { error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}

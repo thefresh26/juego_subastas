@@ -6,7 +6,7 @@ import {
   HostToServerMsg,
 } from "@subasta/shared";
 import { GameRoom } from "./gameRoom.js";
-import { verifyAdminToken, supabaseEnabled } from "./supabase.js";
+import { verifyAdminToken, supabaseEnabled, createAdminUser } from "./supabase.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -158,6 +158,15 @@ wssHost.on("connection", (socket: WebSocket) => {
         case "host:relist_property":
           await room.relistProperty(msg.propertyId);
           break;
+        case "host:create_admin": {
+          const result = await createAdminUser(msg.email, msg.password);
+          if (result.ok) {
+            socket.send(JSON.stringify({ t: "host:admin_created", email: msg.email }));
+          } else {
+            socket.send(JSON.stringify({ t: "error", code: "admin_create_failed", mensaje: result.error }));
+          }
+          break;
+        }
         case "host:start":
         case "host:next":
         case "host:kick":

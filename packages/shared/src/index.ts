@@ -220,6 +220,13 @@ export const HostDeletePropertyMsg = z.object({ t: z.literal("host:delete_proper
 // Vuelve a poner en subasta un inmueble ya adjudicado (estado -> disponible).
 export const HostRelistPropertyMsg = z.object({ t: z.literal("host:relist_property"), propertyId: z.string() });
 
+// Crea un nuevo usuario admin directamente en Supabase Auth (email + contraseña).
+export const HostCreateAdminMsg = z.object({
+  t: z.literal("host:create_admin"),
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
 export const HostToServerMsg = z.discriminatedUnion("t", [
   HostArmMsg,
   HostStartMsg,
@@ -233,6 +240,7 @@ export const HostToServerMsg = z.discriminatedUnion("t", [
   HostUpdatePropertyMsg,
   HostDeletePropertyMsg,
   HostRelistPropertyMsg,
+  HostCreateAdminMsg,
 ]);
 export type HostToServerMsg = z.infer<typeof HostToServerMsg>;
 
@@ -259,7 +267,9 @@ export const HostStateMsg = z.object({
 });
 export type HostStateMsg = z.infer<typeof HostStateMsg>;
 
-export const ServerToHostMsg = z.discriminatedUnion("t", [HostStateMsg, ErrorMsg]);
+export const AdminCreatedMsg = z.object({ t: z.literal("host:admin_created"), email: z.string() });
+
+export const ServerToHostMsg = z.discriminatedUnion("t", [HostStateMsg, AdminCreatedMsg, ErrorMsg]);
 export type ServerToHostMsg = z.infer<typeof ServerToHostMsg>;
 
 // ---------- Constantes de juego ----------
