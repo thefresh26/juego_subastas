@@ -237,18 +237,6 @@ export default function Play() {
           <h1 className="font-display text-2xl mb-1">Subasta Activa</h1>
           <p className="text-sm mb-6 opacity-70">Completa tus datos para participar en la subasta.</p>
 
-          {!pinFromQr && (
-            <>
-              <label className="block text-xs uppercase tracking-wide mb-1">PIN</label>
-              <input
-                className="w-full mb-4 px-3 py-2 rounded border border-archivo/30 font-mono tabular"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                inputMode="numeric"
-              />
-            </>
-          )}
-
           <label className="block text-xs uppercase tracking-wide mb-1">Nombre</label>
           <input
             className="w-full mb-4 px-3 py-2 rounded border border-archivo/30"
