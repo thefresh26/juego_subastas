@@ -11,7 +11,14 @@ type HostState = {
   estado: string;
   pin: string;
   properties: Property[];
-  jugadores: { playerId: string; nickname: string; flagged: boolean }[];
+  jugadores: {
+    playerId: string;
+    nickname: string;
+    telefono?: string;
+    correo?: string;
+    conectado?: boolean;
+    flagged: boolean;
+  }[];
   rondaActual: { roundId: string; propiedad: Property; estado: string } | null;
 };
 
@@ -39,6 +46,7 @@ export default function Host() {
   const [state, setState] = useState<HostState | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
+  const [showJugadores, setShowJugadores] = useState(false);
   const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
   // --- Formulario de propiedades (crear / editar) ---
@@ -405,20 +413,12 @@ export default function Host() {
         )}
       </div>
 
-      <div>
-        <p className="font-display mb-2">Jugadores</p>
-        <div className="flex flex-wrap gap-2">
-          {state?.jugadores.map((j) => (
-            <span
-              key={j.playerId}
-              className={`px-3 py-1 rounded-full text-sm ${j.flagged ? "bg-sello" : "bg-manila/10"}`}
-            >
-              {j.nickname}
-              {j.flagged ? " ⚠" : ""}
-            </span>
-          ))}
-        </div>
-      </div>
+      <button
+        className="bg-manila/20 px-4 py-2 rounded font-display"
+        onClick={() => setShowJugadores(true)}
+      >
+        Ver participantes ({state?.jugadores.length ?? 0})
+      </button>
 
       {/* ---------- Modal crear/editar inmueble ---------- */}
       {showForm && (
@@ -490,6 +490,40 @@ export default function Host() {
               <button className="bg-archivo/10 px-4 py-2 rounded font-display" onClick={closeForm}>
                 Cancelar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- Modal lista de participantes ---------- */}
+      {showJugadores && (
+        <div className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4">
+          <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl">Participantes ({state?.jugadores.length ?? 0})</h2>
+              <button className="text-sm underline" onClick={() => setShowJugadores(false)}>
+                Cerrar
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {state?.jugadores.map((j) => (
+                <div key={j.playerId} className="bg-archivo/5 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-display">
+                      {j.nickname}
+                      {j.flagged ? " ⚠" : ""}
+                    </p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${j.conectado ? "bg-oro" : "bg-archivo/10"}`}>
+                      {j.conectado ? "conectado" : "desconectado"}
+                    </span>
+                  </div>
+                  <p className="text-sm opacity-70">{j.telefono || "sin celular"}</p>
+                  <p className="text-sm opacity-70">{j.correo || "sin correo"}</p>
+                </div>
+              ))}
+              {(state?.jugadores.length ?? 0) === 0 && (
+                <p className="opacity-50 text-sm">Todavía no se ha registrado nadie.</p>
+              )}
             </div>
           </div>
         </div>

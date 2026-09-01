@@ -64,6 +64,8 @@ export class GameRoom {
       if (existing) {
         existing.socket = socket;
         existing.nickname = nickname || existing.nickname;
+        existing.telefono = telefono || existing.telefono;
+        existing.correo = correo || existing.correo;
         player = existing;
         this.broadcastHostState();
         logPlayerLogin({ eventPin: this.state.pin, nickname: player.nickname, playerId: player.playerId, telefono, correo }).catch(
@@ -75,6 +77,8 @@ export class GameRoom {
     player = {
       playerId: nanoid(10),
       nickname: nickname.slice(0, 24) || `Jugador-${nanoid(4)}`,
+      telefono,
+      correo,
       resumeToken: resumeToken || nanoid(16),
       socket,
       lastSeq: -1,
@@ -422,6 +426,9 @@ export class GameRoom {
       jugadores: [...this.state.players.values()].map((p) => ({
         playerId: p.playerId,
         nickname: p.nickname,
+        telefono: p.telefono,
+        correo: p.correo,
+        conectado: p.socket !== null,
         flagged: false,
       })),
       rondaActual: this.state.currentRound

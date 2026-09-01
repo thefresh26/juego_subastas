@@ -243,7 +243,16 @@ export const HostStateMsg = z.object({
   estado: z.string(),
   pin: z.string(),
   properties: z.array(PropertySchema),
-  jugadores: z.array(z.object({ playerId: z.string(), nickname: z.string(), flagged: z.boolean() })),
+  jugadores: z.array(
+    z.object({
+      playerId: z.string(),
+      nickname: z.string(),
+      telefono: z.string().optional(),
+      correo: z.string().optional(),
+      conectado: z.boolean().optional(),
+      flagged: z.boolean(),
+    })
+  ),
   rondaActual: z
     .object({ roundId: z.string(), propiedad: PropertySchema, estado: z.string() })
     .nullable(),

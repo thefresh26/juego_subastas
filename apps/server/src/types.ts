@@ -6,6 +6,8 @@ export type Estado = "lobby" | "armed" | "running" | "ended";
 export interface PlayerConn {
   playerId: string;
   nickname: string;
+  telefono: string;
+  correo: string;
   resumeToken: string;
   socket: WebSocket | null; // null mientras está desconectado
   lastSeq: number; // último seq de tap_batch aceptado, por ronda (ver roundSeqSeen)
