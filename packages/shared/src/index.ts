@@ -271,7 +271,17 @@ export type HostStateMsg = z.infer<typeof HostStateMsg>;
 
 export const AdminCreatedMsg = z.object({ t: z.literal("host:admin_created"), email: z.string() });
 
-export const ServerToHostMsg = z.discriminatedUnion("t", [HostStateMsg, AdminCreatedMsg, ErrorMsg]);
+// Ranking en vivo de la ronda en curso, para que el admin vea cómo van las pujas.
+export const HostTickMsg = z.object({
+  t: z.literal("host:tick"),
+  roundId: z.string(),
+  remainingMs: z.number(),
+  top: z.array(PlayerSummarySchema),
+  tapsTotales: z.number().int().nonnegative(),
+  valorActual: z.number().nonnegative(),
+});
+
+export const ServerToHostMsg = z.discriminatedUnion("t", [HostStateMsg, AdminCreatedMsg, HostTickMsg, ErrorMsg]);
 export type ServerToHostMsg = z.infer<typeof ServerToHostMsg>;
 
 // ---------- Constantes de juego ----------

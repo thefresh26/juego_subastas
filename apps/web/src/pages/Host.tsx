@@ -22,6 +22,14 @@ type HostState = {
   rondaActual: { roundId: string; propiedad: Property; estado: string } | null;
 };
 
+type LiveTick = {
+  roundId: string;
+  remainingMs: number;
+  top: { playerId: string; nickname: string; taps: number; valorPujado: number; flagged: boolean }[];
+  tapsTotales: number;
+  valorActual: number;
+};
+
 const EMPTY_FORM: PropertyInput = {
   nombre: "",
   ciudad: "",
@@ -44,6 +52,7 @@ export default function Host() {
   const [authed, setAuthed] = useState(false);
 
   const [state, setState] = useState<HostState | null>(null);
+  const [liveTick, setLiveTick] = useState<LiveTick | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [showJugadores, setShowJugadores] = useState(false);
@@ -63,7 +72,11 @@ export default function Host() {
 
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
-    if (msg.t === "host:state") setState(msg as unknown as HostState);
+    if (msg.t === "host:state") {
+      setState(msg as unknown as HostState);
+      if (!(msg as unknown as HostState).rondaActual) setLiveTick(null);
+    }
+    if (msg.t === "host:tick") setLiveTick(msg as unknown as LiveTick);
     if (msg.t === "host:admin_created") {
       setCreandoAdmin(false);
       setAdminMsg({ tipo: "ok", texto: `Administrador creado: ${msg.email}` });
@@ -340,7 +353,34 @@ export default function Host() {
       {state?.rondaActual ? (
         <div className="bg-manila/10 rounded-xl p-4 mb-6">
           <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
-          <p className="opacity-70 text-sm mb-3">ronda: {state.rondaActual.estado}</p>
+          <p className="opacity-70 text-sm mb-3">
+            ronda: {state.rondaActual.estado}
+            {liveTick && liveTick.roundId === state.rondaActual.roundId && (
+              <> · {Math.ceil(liveTick.remainingMs / 1000)}s · {liveTick.tapsTotales} taps totales</>
+            )}
+          </p>
+
+          {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
+            <div className="flex flex-col gap-1 mb-4">
+              {liveTick.top.map((p, i) => (
+                <div
+                  key={p.playerId}
+                  className={`flex justify-between px-3 py-1.5 rounded text-sm ${
+                    i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
+                  }`}
+                >
+                  <span>
+                    #{i + 1} {p.nickname}
+                    {p.flagged ? " ⚠" : ""}
+                  </span>
+                  <span className="font-mono tabular">
+                    {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <button
               className="bg-sello px-4 py-2 rounded"

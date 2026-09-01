@@ -407,6 +407,16 @@ export class GameRoom {
       valorActual: tapsTotales * this.state.valorPorTap,
     };
     for (const s of this.state.screens) safeSend(s, payload);
+
+    const hostPayload = {
+      t: "host:tick" as const,
+      roundId: round.roundId,
+      remainingMs,
+      top: ranking.slice(0, 10),
+      tapsTotales,
+      valorActual: tapsTotales * this.state.valorPorTap,
+    };
+    for (const h of this.state.hosts) safeSend(h, hostPayload);
   }
 
   broadcastLobby() {
