@@ -259,7 +259,7 @@ export default function Host() {
               />
               {loginError && <p className="text-sello text-sm mb-3">{loginError}</p>}
               <button
-                className="w-full bg-sello text-manila py-3 rounded font-display disabled:opacity-50"
+                className="w-full bg-azul text-manila py-3 rounded font-display disabled:opacity-50"
                 disabled={!connected || loggingIn || !email || !password}
                 onClick={loginConSupabase}
               >
@@ -278,7 +278,7 @@ export default function Host() {
                 placeholder="Token"
               />
               <button
-                className="w-full bg-sello text-manila py-3 rounded font-display"
+                className="w-full bg-azul text-manila py-3 rounded font-display"
                 disabled={!connected}
                 onClick={loginConToken}
               >
@@ -299,11 +299,17 @@ export default function Host() {
     <div className="min-h-screen bg-archivo text-manila font-body p-8">
       <div className="flex items-start justify-between mb-1">
         <h1 className="font-display text-2xl">Consola del presentador</h1>
-        <div className="flex items-center gap-4">
-          <button className="text-sm opacity-70 underline" onClick={() => setShowAdminForm(true)}>
+        <div className="flex items-center gap-2">
+          <button
+            className="bg-oro text-archivo px-3 py-1.5 rounded text-sm font-display"
+            onClick={() => setShowAdminForm(true)}
+          >
             + Nuevo administrador
           </button>
-          <button className="text-sm opacity-70 underline" onClick={logout}>
+          <button
+            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm"
+            onClick={logout}
+          >
             Cerrar sesión
           </button>
         </div>
@@ -394,12 +400,15 @@ export default function Host() {
 
           <div className="flex gap-2">
             <button
-              className="bg-sello px-4 py-2 rounded"
+              className="bg-azul text-manila px-4 py-2 rounded font-display"
               onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
             >
               Repetir ronda
             </button>
-            <button className="bg-manila/20 px-4 py-2 rounded" onClick={() => send({ t: "host:abort" })}>
+            <button
+              className="bg-sello/80 text-manila px-4 py-2 rounded font-display"
+              onClick={() => send({ t: "host:abort" })}
+            >
               Abortar
             </button>
           </div>
@@ -426,7 +435,7 @@ export default function Host() {
       )}
 
       <div className="flex gap-3 mb-8">
-        <button className="bg-manila/20 px-4 py-2 rounded font-display" onClick={openCreateForm}>
+        <button className="bg-oro text-archivo px-4 py-2 rounded font-display" onClick={openCreateForm}>
           + Nuevo inmueble
         </button>
       </div>
@@ -499,7 +508,7 @@ export default function Host() {
       </div>
 
       <button
-        className="bg-manila/20 px-4 py-2 rounded font-display"
+        className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display"
         onClick={() => setShowJugadores(true)}
       >
         Ver participantes ({state?.jugadores.length ?? 0})
@@ -566,7 +575,7 @@ export default function Host() {
             </div>
             <div className="flex gap-2 mt-5">
               <button
-                className="bg-sello text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
+                className="bg-azul text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
                 disabled={!form.nombre || !form.ciudad || !form.tipo || !form.matriculaInmobiliaria || !form.areaM2 || !form.avaluo}
                 onClick={submitForm}
               >
@@ -598,7 +607,11 @@ export default function Host() {
                       {j.nickname}
                       {j.flagged ? " ⚠" : ""}
                     </p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${j.conectado ? "bg-oro" : "bg-archivo/10"}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        j.conectado ? "bg-esmeralda text-manila" : "bg-archivo/10"
+                      }`}
+                    >
                       {j.conectado ? "conectado" : "desconectado"}
                     </span>
                   </div>
@@ -624,7 +637,7 @@ export default function Host() {
             </p>
 
             {adminMsg && (
-              <p className={`text-sm mb-3 ${adminMsg.tipo === "ok" ? "text-green-700" : "text-sello"}`}>
+              <p className={`text-sm mb-3 ${adminMsg.tipo === "ok" ? "text-esmeralda" : "text-sello"}`}>
                 {adminMsg.texto}
               </p>
             )}
@@ -650,7 +663,7 @@ export default function Host() {
 
             <div className="flex gap-2">
               <button
-                className="bg-sello text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
+                className="bg-azul text-manila px-4 py-2 rounded font-display flex-1 disabled:opacity-50"
                 disabled={!emailAdminValido || !passwordValida || creandoAdmin}
                 onClick={crearAdmin}
               >

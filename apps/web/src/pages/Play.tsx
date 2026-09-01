@@ -276,7 +276,7 @@ export default function Play() {
           />
 
           <button
-            className="w-full bg-sello text-manila py-3 rounded font-display disabled:opacity-40"
+            className="w-full bg-azul text-manila py-3 rounded font-display disabled:opacity-40"
             disabled={!puedeEntrar}
             onClick={onJoin}
           >
@@ -317,7 +317,7 @@ export default function Play() {
     const voyGanando = lider && lider.nickname === nickname;
     return (
       <div
-        className="min-h-screen bg-sello select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden"
+        className="min-h-screen bg-azul select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden"
         style={{ touchAction: "manipulation", overscrollBehavior: "none", WebkitTapHighlightColor: "transparent" }}
         onPointerDown={onTap}
       >
