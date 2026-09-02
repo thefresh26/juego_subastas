@@ -55,9 +55,7 @@ export default function Host() {
   const [state, setState] = useState<HostState | null>(null);
   const [liveTick, setLiveTick] = useState<LiveTick | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [copiado, setCopiado] = useState(false);
   const [showJugadores, setShowJugadores] = useState(false);
-  const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
   // --- Formulario de propiedades (crear / editar) ---
   const [showForm, setShowForm] = useState(false);
@@ -236,30 +234,6 @@ export default function Host() {
     send({ t: "host:reset_players" });
   };
 
-  const joinUrl = (pin: string) => `${window.location.origin}/play?pin=${pin}`;
-
-  const copiarEnlace = async (pin: string) => {
-    try {
-      await navigator.clipboard.writeText(joinUrl(pin));
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    } catch {
-      // clipboard no disponible (permiso o navegador viejo): no hacemos nada más.
-    }
-  };
-
-  const compartirEnlace = async (pin: string) => {
-    try {
-      await navigator.share({
-        title: "Subasta Activa",
-        text: "Únete a la subasta:",
-        url: joinUrl(pin),
-      });
-    } catch {
-      // el usuario canceló el share o no está disponible: sin problema.
-    }
-  };
-
   const crearAdmin = () => {
     setAdminMsg(null);
     setCreandoAdmin(true);
@@ -346,7 +320,8 @@ export default function Host() {
         <div>
           <h1 className="font-display text-2xl">Consola del presentador</h1>
           <p className="opacity-70 text-sm mt-1">
-            estado: <span className="font-mono">{state?.estado ?? "-"}</span> · {state?.jugadores.length ?? 0} jugadores
+            PIN: <span className="font-mono tabular">{pin}</span> · estado:{" "}
+            <span className="font-mono">{state?.estado ?? "-"}</span> · {state?.jugadores.length ?? 0} jugadores
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -380,29 +355,6 @@ export default function Host() {
           </button>
         </div>
       )}
-
-      {/* ---------- PIN + enlace: línea compacta (el QR grande ya lo muestra /screen) ---------- */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <span className="font-mono tabular text-lg">PIN: {pin}</span>
-        <button
-          type="button"
-          className="bg-gradient-to-r from-azul to-navy3 text-manila px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-          onClick={() => copiarEnlace(pin)}
-        >
-          <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
-            {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
-          </span>
-        </button>
-        {canShare && (
-          <button
-            type="button"
-            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-            onClick={() => compartirEnlace(pin)}
-          >
-            Compartir
-          </button>
-        )}
-      </div>
 
       {/* ---------- Ronda actual: el bloque más usado durante el evento ---------- */}
       <Section titulo="Ronda actual" destacado>
