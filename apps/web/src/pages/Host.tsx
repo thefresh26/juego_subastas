@@ -497,7 +497,7 @@ export default function Host() {
                 onClick={() => send({ t: "host:arm", propertyId: p.id })}
               >
                 {p.imagenUrl && (
-                  <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                  <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                 )}
                 <p className="font-display">{p.nombre}</p>
                 <p className="text-sm opacity-70">
@@ -530,7 +530,7 @@ export default function Host() {
               {enSubasta.map((p) => (
                 <div key={p.id} className="bg-manila/10 rounded-lg p-3">
                   {p.imagenUrl && (
-                    <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                    <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                   )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70">{p.ciudad}</p>
@@ -546,7 +546,7 @@ export default function Host() {
             {disponibles.map((p) => (
               <div key={p.id} className="bg-manila text-archivo rounded-lg p-3">
                 {p.imagenUrl && (
-                  <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                  <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                 )}
                 <p className="font-display">{p.nombre}</p>
                 <p className="text-xs opacity-70 mb-2">
@@ -579,7 +579,7 @@ export default function Host() {
               {adjudicadas.map((p) => (
                 <div key={p.id} className="bg-manila/10 rounded-lg p-3">
                   {p.imagenUrl && (
-                    <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                    <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                   )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
