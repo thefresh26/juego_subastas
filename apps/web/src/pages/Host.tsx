@@ -314,7 +314,7 @@ export default function Host() {
   const pin = state?.pin ?? "----";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body p-6 lg:p-8">
+    <div className="min-h-screen bg-escenario text-manila font-body p-6 lg:p-8">
       {/* ---------- Header: título + acciones de cuenta ---------- */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
@@ -385,7 +385,10 @@ export default function Host() {
             </p>
 
             {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-              <div ref={rankingFlipRef} className="flex flex-col gap-2 mb-4">
+              <div
+                ref={rankingFlipRef}
+                className="flex flex-col gap-2 mb-4 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
+              >
                 {(() => {
                   const valorMaximo = Math.max(...liveTick.top.map((p) => p.valorPujado), 1);
                   return liveTick.top.map((p, i) => {

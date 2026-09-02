@@ -186,7 +186,10 @@ export default function Screen() {
           </p>
           <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="mt-6" />
           <p className="opacity-60 mt-2">{tapsTotales} taps totales</p>
-          <div ref={top5FlipRef} className="mt-6 flex flex-col gap-2">
+          <div
+            ref={top5FlipRef}
+            className="mt-6 flex flex-col gap-2 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
+          >
             {(() => {
               const valorMaximo = Math.max(...top5.map((p) => p.valorPujado), 1);
               return top5.map((p, i) => {
@@ -227,7 +230,7 @@ export default function Screen() {
 
 function FullScreen({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body">
+    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-escenario text-manila font-body">
       <FullscreenButton />
       {children}
     </div>

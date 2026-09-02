@@ -12,6 +12,12 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
+/* Fondo con profundidad para /screen y la consola de admin: viñeta suave
+   de navy3 (centro/arriba) hacia archivo (bordes). */
+.bg-escenario {
+  background: radial-gradient(ellipse at 50% 30%, #1E3A68 0%, #0D1F3C 70%);
+}
+
 /* Moneditas que suben y se desvanecen con cada tap en /play.
    El ángulo final y la duración vienen de variables por moneda
    (--coin-rot, --coin-duration) para que no se vean todas idénticas. */
