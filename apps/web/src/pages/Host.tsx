@@ -463,6 +463,9 @@ export default function Host() {
                 className="bg-manila text-archivo rounded-lg p-4 text-left transition-all duration-150 ease-out hover:bg-oro hover:scale-105 active:scale-95"
                 onClick={() => send({ t: "host:arm", propertyId: p.id })}
               >
+                {p.imagenUrl && (
+                  <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                )}
                 <p className="font-display">{p.nombre}</p>
                 <p className="text-sm opacity-70">
                   {p.ciudad} · {p.avaluo.toLocaleString("es-CO")} COP
@@ -493,6 +496,9 @@ export default function Host() {
             <div className="grid grid-cols-3 gap-3">
               {enSubasta.map((p) => (
                 <div key={p.id} className="bg-manila/10 rounded-lg p-3">
+                  {p.imagenUrl && (
+                    <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                  )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70">{p.ciudad}</p>
                 </div>
@@ -506,6 +512,9 @@ export default function Host() {
           <div className="grid grid-cols-3 gap-3">
             {disponibles.map((p) => (
               <div key={p.id} className="bg-manila text-archivo rounded-lg p-3">
+                {p.imagenUrl && (
+                  <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                )}
                 <p className="font-display">{p.nombre}</p>
                 <p className="text-xs opacity-70 mb-2">
                   {p.ciudad} · {p.tipo} · {p.areaM2} m²
@@ -530,6 +539,9 @@ export default function Host() {
             <div className="grid grid-cols-3 gap-3">
               {adjudicadas.map((p) => (
                 <div key={p.id} className="bg-manila/10 rounded-lg p-3">
+                  {p.imagenUrl && (
+                    <img src={p.imagenUrl} alt={p.nombre} className="w-full h-24 object-cover rounded-lg mb-2" />
+                  )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
                   <div className="flex gap-2 text-xs">
