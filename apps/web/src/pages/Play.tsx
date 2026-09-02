@@ -335,7 +335,7 @@ export default function Play() {
       <Centered>
         <p className="font-display text-xl">Estás dentro, {nickname}.</p>
         <p className="opacity-70 mt-2">Esperando a que el presentador arme la siguiente ronda…</p>
-        <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={salirDelJuego}>
+        <button type="button" className="mt-8 px-4 py-2 rounded-full border border-manila/40 text-manila/80 text-sm hover:bg-manila/10 hover:text-manila transition-colors active:scale-95" onClick={salirDelJuego}>
           Salir
         </button>
       </Centered>
@@ -440,7 +440,7 @@ export default function Play() {
           <p className="text-sm opacity-60 mt-1">{resultado?.recortados} taps descartados (fuera de ventana)</p>
         )}
       </div>
-      <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={salirDelJuego}>
+      <button type="button" className="mt-8 px-4 py-2 rounded-full border border-manila/40 text-manila/80 text-sm hover:bg-manila/10 hover:text-manila transition-colors active:scale-95" onClick={salirDelJuego}>
         Salir
       </button>
     </Centered>
