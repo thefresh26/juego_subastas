@@ -534,17 +534,17 @@ export default function Host() {
                 <p className="text-xs opacity-70 mb-2">
                   {p.ciudad} · {p.tipo} · {p.areaM2} m²
                 </p>
-                <div className="flex gap-2 text-xs">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     type="button"
-                    className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    className="bg-azul/80 hover:bg-azul text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
                     onClick={() => openEditForm(p)}
                   >
                     Editar
                   </button>
                   <button
                     type="button"
-                    className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    className="bg-sello/80 hover:bg-sello text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
                     onClick={() => eliminarPropiedad(p.id)}
                   >
                     Eliminar
@@ -567,24 +567,24 @@ export default function Host() {
                   )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
-                  <div className="flex gap-2 text-xs">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       type="button"
-                      className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      className="bg-esmeralda/80 hover:bg-esmeralda text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
                       onClick={() => volverAPonerEnSubasta(p.id)}
                     >
                       Volver a poner en subasta
                     </button>
                     <button
                       type="button"
-                      className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      className="bg-azul/80 hover:bg-azul text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
                       onClick={() => openEditForm(p)}
                     >
                       Editar
                     </button>
                     <button
                       type="button"
-                      className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      className="bg-sello/80 hover:bg-sello text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
                       onClick={() => eliminarPropiedad(p.id)}
                     >
                       Eliminar
@@ -769,7 +769,7 @@ export default function Host() {
               <h2 className="font-display text-xl">Participantes ({state?.jugadores.length ?? 0})</h2>
               <button
                 type="button"
-                className="text-sm underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                className="bg-archivo/10 border border-archivo/30 hover:bg-archivo/20 text-archivo text-sm px-4 py-2 rounded-full font-display transition-colors"
                 onClick={() => setShowJugadores(false)}
               >
                 Cerrar
