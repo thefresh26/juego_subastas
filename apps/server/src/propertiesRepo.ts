@@ -49,6 +49,7 @@ export async function loadProperties(): Promise<Property[]> {
   const { data, error } = await supabaseAdmin
     .from("properties")
     .select("*")
+    .eq("archivado", false)
     .order("created_at", { ascending: true });
   if (error) {
     console.error("[supabase] error cargando properties:", error.message);
@@ -80,9 +81,12 @@ export async function updateProperty(id: string, input: PropertyInput): Promise<
   return rowToProperty(data as PropertyRow);
 }
 
-export async function deleteProperty(id: string): Promise<void> {
+export async function archiveProperty(id: string): Promise<void> {
   if (!supabaseAdmin) throw new Error("Base de datos no configurada (SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY)");
-  const { error } = await supabaseAdmin.from("properties").delete().eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("properties")
+    .update({ archivado: true, updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw new Error(error.message);
 }
 

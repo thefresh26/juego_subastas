@@ -9,7 +9,7 @@ import {
   loadProperties,
   createProperty,
   updateProperty,
-  deleteProperty,
+  archiveProperty,
   setPropertyEstado,
   logPlayerLogin,
   logRoundResult,
@@ -171,7 +171,7 @@ export class GameRoom {
   }
 
   async deletePropertyEntry(propertyId: string) {
-    await deleteProperty(propertyId);
+    await archiveProperty(propertyId);
     this.state.properties = this.state.properties.filter((p) => p.id !== propertyId);
     this.broadcastHostState();
   }
