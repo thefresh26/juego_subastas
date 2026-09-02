@@ -155,74 +155,73 @@ export default function Screen() {
     );
   }
 
-  // Ronda en vivo: la foto del inmueble es la protagonista (se ve desde
-  // lejos en el proyector), con el resto de datos organizados alrededor.
+  // Ronda en vivo: la foto queda fija arriba como "meta" y las barras
+  // verticales de puja crecen hacia ella; tiempo y taps van debajo.
   return (
     <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body flex items-center justify-center p-6 lg:p-10">
       <FullscreenButton />
-      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12 items-center">
-        <div className="relative">
+      <div className="w-full max-w-3xl flex flex-col items-center text-center">
+        <p className="font-mono text-sm uppercase opacity-70">{propiedad.matriculaInmobiliaria}</p>
+        <h2 className="font-display text-3xl lg:text-5xl mt-1">{propiedad.nombre}</h2>
+        <p className="opacity-70 text-base lg:text-lg mt-2">
+          {propiedad.ciudad} · {propiedad.areaM2} m² · avalúo {propiedad.avaluo.toLocaleString("es-CO")} COP
+        </p>
+
+        <div className="mt-6 flex flex-col items-center">
           {propiedad.imagenUrl ? (
             <img
               src={propiedad.imagenUrl}
               alt={propiedad.nombre}
-              className="w-full h-[42vh] lg:h-[72vh] object-cover rounded-2xl border-4 border-manila/20 shadow-2xl"
+              className="w-64 h-40 object-cover rounded-xl border-4 border-oro/40 shadow-xl"
             />
           ) : (
-            <div className="w-full h-[42vh] lg:h-[72vh] rounded-2xl bg-manila/10 border-4 border-manila/20 flex items-center justify-center">
-              <BrandMark className="w-20 h-20 opacity-40" />
+            <div className="w-64 h-40 rounded-xl bg-manila/10 border-4 border-oro/40 flex items-center justify-center">
+              <BrandMark className="w-14 h-14 opacity-40" />
             </div>
           )}
-          <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 bg-archivo/85 rounded-xl px-5 py-3 lg:px-6 lg:py-4">
-            <p className="font-mono tabular text-4xl lg:text-6xl">{Math.ceil(remainingMs / 1000)}s</p>
-          </div>
+          <p className="text-sm opacity-70 mt-2">¡Llega hasta aquí!</p>
         </div>
 
-        <div className="text-left">
-          <p className="font-mono text-sm uppercase opacity-70">{propiedad.matriculaInmobiliaria}</p>
-          <h2 className="font-display text-3xl lg:text-5xl mt-1">{propiedad.nombre}</h2>
-          <p className="opacity-70 text-base lg:text-lg mt-2">
-            {propiedad.ciudad} · {propiedad.areaM2} m² · avalúo {propiedad.avaluo.toLocaleString("es-CO")} COP
-          </p>
-          <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="mt-6" />
-          <p className="opacity-60 mt-2">{tapsTotales} taps totales</p>
-          <div
-            ref={top5FlipRef}
-            className="mt-6 flex flex-col gap-2 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
-          >
-            {(() => {
-              const valorMaximo = Math.max(...top5.map((p) => p.valorPujado), 1);
-              return top5.map((p, i) => {
-                const pct = (p.valorPujado / valorMaximo) * 100;
-                const esLider = i === 0;
-                return (
-                  <div
-                    key={p.playerId}
-                    data-flip-key={p.playerId}
-                    className={`relative overflow-hidden rounded-lg ${esLider ? "border-2 border-oro" : ""}`}
-                  >
+        <div
+          ref={top5FlipRef}
+          className="mt-6 flex items-end justify-center gap-4 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
+        >
+          {(() => {
+            const valorMaximo = Math.max(...top5.map((p) => p.valorPujado), 1);
+            return top5.map((p, i) => {
+              const pct = (p.valorPujado / valorMaximo) * 100;
+              const esLider = i === 0;
+              const cercaDeLaMeta = pct >= 90;
+              return (
+                <div key={p.playerId} data-flip-key={p.playerId} className="flex flex-col items-center w-16 shrink-0">
+                  <div className="w-16 h-64 flex flex-col items-center justify-end">
+                    {esLider && (
+                      <span className="text-xl mb-1" aria-hidden="true">
+                        🏆
+                      </span>
+                    )}
                     <div
-                      className="absolute inset-y-0 left-0 bg-azul/25 rounded-r-full transition-all duration-300 ease-out"
-                      style={{ width: `${pct}%` }}
+                      className={`w-16 rounded-t-lg bg-azul/70 transition-all duration-300 ease-out ${
+                        esLider ? "border-2 border-oro" : ""
+                      } ${cercaDeLaMeta ? "shadow-[0_0_20px_rgba(245,168,0,0.4)]" : ""}`}
+                      style={{ height: `${pct}%` }}
                     />
-                    <div
-                      className={`relative z-10 flex items-center justify-between px-4 py-2.5 ${
-                        esLider ? "text-oro font-display" : "text-manila"
-                      }`}
-                    >
-                      <span className="text-xl">
-                        {esLider && "🏆 "}#{i + 1} {p.nickname}
-                      </span>
-                      <span key={p.valorPujado} className="value-pop font-mono tabular text-2xl lg:text-3xl">
-                        {p.valorPujado.toLocaleString("es-CO")} COP
-                      </span>
-                    </div>
                   </div>
-                );
-              });
-            })()}
-          </div>
+                  <span className="text-xs lg:text-sm mt-2 w-16 truncate text-center" title={p.nickname}>
+                    {p.nickname}
+                  </span>
+                  <span key={p.valorPujado} className="value-pop font-mono tabular text-xs mt-0.5">
+                    {p.valorPujado.toLocaleString("es-CO")} COP
+                  </span>
+                </div>
+              );
+            });
+          })()}
         </div>
+
+        <p className="font-mono tabular text-4xl lg:text-6xl mt-6">{Math.ceil(remainingMs / 1000)}s</p>
+        <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="mt-4 w-80" />
+        <p className="opacity-60 mt-2">{tapsTotales} taps totales</p>
       </div>
     </div>
   );
