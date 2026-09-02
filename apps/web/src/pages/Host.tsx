@@ -64,6 +64,8 @@ export default function Host() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PropertyInput>(EMPTY_FORM);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // --- Crear nuevos administradores ---
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -149,6 +151,7 @@ export default function Host() {
   const openCreateForm = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setUploadError(null);
     setShowForm(true);
   };
 
@@ -164,6 +167,7 @@ export default function Host() {
       descripcion: p.descripcion ?? "",
       imagenUrl: p.imagenUrl ?? "",
     });
+    setUploadError(null);
     setShowForm(true);
   };
 
@@ -171,6 +175,37 @@ export default function Host() {
     setShowForm(false);
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setUploadError(null);
+  };
+
+  const subirImagen = async (file: File) => {
+    if (!supabase) return;
+    setUploadError(null);
+    if (!file.type.startsWith("image/")) {
+      setUploadError("El archivo debe ser una imagen.");
+      return;
+    }
+    const MAX_BYTES = 8 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      setUploadError("La imagen no puede pesar más de 8 MB.");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("inmuebles").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("inmuebles").getPublicUrl(path);
+      setForm((f) => ({ ...f, imagenUrl: data.publicUrl }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "No se pudo subir la imagen.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const submitForm = () => {
@@ -574,17 +609,53 @@ export default function Host() {
                 value={form.descripcion}
                 onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
               />
-              <input
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="URL de imagen (opcional)"
-                value={form.imagenUrl}
-                onChange={(e) => setForm({ ...form, imagenUrl: e.target.value })}
-              />
+              {supabase ? (
+                <div>
+                  <label className="block text-xs uppercase tracking-wide opacity-70 mb-1">
+                    Foto del inmueble (opcional)
+                  </label>
+                  {form.imagenUrl && (
+                    <img
+                      src={form.imagenUrl}
+                      alt="Vista previa"
+                      className="w-full h-32 object-cover rounded border border-archivo/20 mb-2"
+                    />
+                  )}
+                  <input
+                    className="w-full text-sm"
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (file) subirImagen(file);
+                    }}
+                  />
+                  {uploadingImage && <p className="text-xs opacity-60 mt-1">Subiendo...</p>}
+                  {uploadError && <p className="text-xs text-sello mt-1">{uploadError}</p>}
+                </div>
+              ) : (
+                <input
+                  className="px-3 py-2 rounded border border-archivo/30"
+                  placeholder="URL de imagen (opcional)"
+                  value={form.imagenUrl}
+                  onChange={(e) => setForm({ ...form, imagenUrl: e.target.value })}
+                />
+              )}
             </div>
             <div className="flex gap-2 mt-5">
               <button
                 className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display flex-1 transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
-                disabled={!form.nombre || !form.ciudad || !form.tipo || !form.matriculaInmobiliaria || !form.areaM2 || !form.avaluo}
+                disabled={
+                  !form.nombre ||
+                  !form.ciudad ||
+                  !form.tipo ||
+                  !form.matriculaInmobiliaria ||
+                  !form.areaM2 ||
+                  !form.avaluo ||
+                  uploadingImage
+                }
                 onClick={submitForm}
               >
                 {editingId ? "Guardar cambios" : "Crear inmueble"}
