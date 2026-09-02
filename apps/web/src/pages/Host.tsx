@@ -367,27 +367,22 @@ export default function Host() {
       <Section titulo="Ronda actual" destacado>
         {state?.rondaActual ? (
           <>
-            <div className="flex items-start gap-3 mb-1">
+            <div className="text-center mb-4">
               {state.rondaActual.propiedad.imagenUrl && (
                 <img
                   src={state.rondaActual.propiedad.imagenUrl}
                   alt={state.rondaActual.propiedad.nombre}
-                  className="w-20 h-14 object-cover rounded border border-manila/20 shrink-0"
+                  className="w-full max-w-md h-56 object-cover rounded-xl border-2 border-oro/30 mx-auto mb-2"
                 />
               )}
               <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
+              <p className="opacity-70 text-sm mt-1">ronda: {state.rondaActual.estado}</p>
             </div>
-            <p className="opacity-70 text-sm mb-3">
-              ronda: {state.rondaActual.estado}
-              {liveTick && liveTick.roundId === state.rondaActual.roundId && (
-                <> · {Math.ceil(liveTick.remainingMs / 1000)}s · {liveTick.tapsTotales} taps totales</>
-              )}
-            </p>
 
             {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
               <div
                 ref={rankingFlipRef}
-                className="flex flex-col gap-2 mb-4 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
+                className="flex items-end justify-center gap-3 mb-2 bg-gradient-to-b from-navy3/40 to-archivo/40 backdrop-blur-sm rounded-xl border border-manila/10 shadow-lg shadow-black/20 p-6"
               >
                 {(() => {
                   const valorMaximo = Math.max(...liveTick.top.map((p) => p.valorPujado), 1);
@@ -395,37 +390,43 @@ export default function Host() {
                     const pct = (p.valorPujado / valorMaximo) * 100;
                     const esLider = i === 0;
                     return (
-                      <div
-                        key={p.playerId}
-                        data-flip-key={p.playerId}
-                        className={`relative overflow-hidden rounded-lg ${esLider ? "border-2 border-oro" : ""}`}
-                      >
-                        <div
-                          className="absolute inset-y-0 left-0 bg-azul/25 rounded-r-full transition-all duration-300 ease-out"
-                          style={{ width: `${pct}%` }}
-                        />
-                        <div
-                          className={`relative z-10 flex justify-between px-3 py-1.5 text-sm ${
-                            esLider ? "text-oro font-display" : "text-manila"
-                          }`}
-                        >
-                          <span>
-                            {esLider && "🏆 "}#{i + 1} {p.nickname}
-                            {p.flagged && (
-                              <span aria-label="marcado como sospechoso" title="Marcado como sospechoso" className="ml-1">
-                                ⚠
-                              </span>
-                            )}
-                          </span>
-                          <span className="font-mono tabular">
-                            {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
-                          </span>
+                      <div key={p.playerId} data-flip-key={p.playerId} className="flex flex-col items-center w-12 shrink-0">
+                        <div className="w-12 h-40 flex flex-col items-center justify-end">
+                          {esLider && (
+                            <span className="text-lg mb-1" aria-hidden="true">
+                              🏆
+                            </span>
+                          )}
+                          <div
+                            className={`w-12 rounded-t-lg bg-azul/70 transition-all duration-300 ease-out ${
+                              esLider ? "border-2 border-oro" : ""
+                            }`}
+                            style={{ height: `${pct}%` }}
+                          />
                         </div>
+                        <span className="text-xs mt-2 w-12 truncate text-center" title={p.nickname}>
+                          {p.nickname}
+                          {p.flagged && (
+                            <span aria-label="marcado como sospechoso" title="Marcado como sospechoso">
+                              {" "}
+                              ⚠
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-mono tabular text-xs mt-0.5">
+                          {p.valorPujado.toLocaleString("es-CO")} COP
+                        </span>
                       </div>
                     );
                   });
                 })()}
               </div>
+            )}
+
+            {liveTick && liveTick.roundId === state.rondaActual.roundId && (
+              <p className="opacity-70 text-sm text-center mb-4">
+                {Math.ceil(liveTick.remainingMs / 1000)}s · {liveTick.tapsTotales} taps totales
+              </p>
             )}
 
             <div className="flex gap-2">
