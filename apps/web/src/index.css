@@ -144,29 +144,6 @@ body,
   animation: phase-fade-in 350ms ease-out;
 }
 
-/* Borde animado (resplandor oro/azul recorriendo el marco) para los QR
-   de registro, tanto en la consola del presentador como en /screen. */
-@keyframes qr-border-spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-.qr-border {
-  position: relative;
-  isolation: isolate;
-}
-
-.qr-border::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  background: conic-gradient(from 0deg, theme("colors.oro") 0deg, theme("colors.azul") 180deg, theme("colors.oro") 360deg);
-  animation: qr-border-spin 5s linear infinite;
-  z-index: -1;
-}
-
 /* Fade + scale-in para los modales (fixed inset-0) en vez de aparecer de golpe. */
 @keyframes modal-backdrop-in {
   from {

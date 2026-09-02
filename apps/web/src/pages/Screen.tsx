@@ -88,7 +88,7 @@ export default function Screen() {
         <BrandMark className="w-14 h-14 mb-6" />
         <p className="font-mono tabular text-6xl mb-4">{pin}</p>
         {joinUrl ? (
-          <div className="qr-border bg-manila p-4 rounded-xl mb-6">
+          <div className="bg-manila p-4 rounded-xl mb-6">
             <QRCodeSVG value={joinUrl} size={220} />
           </div>
         ) : null}

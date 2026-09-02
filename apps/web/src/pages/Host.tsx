@@ -361,7 +361,7 @@ export default function Host() {
 
       {state?.pin && (
         <div className="bg-manila/10 rounded-xl p-4 mb-6 flex items-center gap-4">
-          <div className="qr-border bg-manila p-2 rounded-lg shrink-0">
+          <div className="bg-manila p-2 rounded-lg shrink-0">
             <QRCodeSVG value={joinUrl(state.pin)} size={110} />
           </div>
           <div className="flex-1">
