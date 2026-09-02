@@ -72,6 +72,43 @@ export default function Play() {
     }
   };
 
+  const salirDelJuego = useCallback(() => {
+    clearFinTimeout();
+    localStorage.removeItem("subasta_resume");
+    localStorage.removeItem("subasta_player");
+    resumeTokenRef.current = undefined;
+    roundIdRef.current = null;
+    seqRef.current = 0;
+    pendingTapsRef.current = 0;
+    tapTimestampsRef.current = [];
+    roundActiveRef.current = false;
+    nicknameRef.current = "";
+    telefonoRef.current = "";
+    correoRef.current = "";
+    setPlayerId(null);
+    setPropiedad(null);
+    setStartAt(0);
+    setRoundId(null);
+    setCountdown(0);
+    setRemainingMs(0);
+    setMisTaps(0);
+    setServidorTaps(0);
+    setMiPosicion(0);
+    setLider(null);
+    setCoins([]);
+    setResultado(null);
+    setNickname("");
+    setTelefono("");
+    setCorreo("");
+    setFase("join");
+  }, []);
+
+  const onSalirClick = () => {
+    if (window.confirm("¿Seguro que quieres salir? Tendrás que registrarte de nuevo para volver a jugar.")) {
+      salirDelJuego();
+    }
+  };
+
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
     switch (msg.t) {
@@ -135,38 +172,11 @@ export default function Play() {
         break;
       }
       case "reset": {
-        clearFinTimeout();
-        localStorage.removeItem("subasta_resume");
-        localStorage.removeItem("subasta_player");
-        resumeTokenRef.current = undefined;
-        roundIdRef.current = null;
-        seqRef.current = 0;
-        pendingTapsRef.current = 0;
-        tapTimestampsRef.current = [];
-        roundActiveRef.current = false;
-        nicknameRef.current = "";
-        telefonoRef.current = "";
-        correoRef.current = "";
-        setPlayerId(null);
-        setPropiedad(null);
-        setStartAt(0);
-        setRoundId(null);
-        setCountdown(0);
-        setRemainingMs(0);
-        setMisTaps(0);
-        setServidorTaps(0);
-        setMiPosicion(0);
-        setLider(null);
-        setCoins([]);
-        setResultado(null);
-        setNickname("");
-        setTelefono("");
-        setCorreo("");
-        setFase("join");
+        salirDelJuego();
         break;
       }
     }
-  }, []);
+  }, [salirDelJuego]);
 
   const { send, connected } = useSocket(WS_URL, onMessage);
 
@@ -331,6 +341,9 @@ export default function Play() {
       <Centered>
         <p className="font-display text-xl">Estás dentro, {nickname}.</p>
         <p className="opacity-70 mt-2">Esperando a que el presentador arme la siguiente ronda…</p>
+        <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={onSalirClick}>
+          Salir
+        </button>
       </Centered>
     );
   }
@@ -433,6 +446,9 @@ export default function Play() {
           <p className="text-sm opacity-60 mt-1">{resultado?.recortados} taps descartados (fuera de ventana)</p>
         )}
       </div>
+      <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={onSalirClick}>
+        Salir
+      </button>
     </Centered>
   );
 }
