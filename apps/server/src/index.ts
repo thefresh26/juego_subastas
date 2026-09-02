@@ -158,6 +158,9 @@ wssHost.on("connection", (socket: WebSocket) => {
         case "host:relist_property":
           await room.relistProperty(msg.propertyId);
           break;
+        case "host:reset_players":
+          room.resetPlayers();
+          break;
         case "host:create_admin": {
           const result = await createAdminUser(msg.email, msg.password);
           if (result.ok) {

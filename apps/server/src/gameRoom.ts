@@ -13,6 +13,7 @@ import {
   setPropertyEstado,
   logPlayerLogin,
   logRoundResult,
+  deletePlayerLogins,
 } from "./propertiesRepo.js";
 import type { PlayerConn, RoomState, RoundState } from "./types.js";
 
@@ -246,8 +247,8 @@ export class GameRoom {
     setTimeout(() => this.endRound(roundId), round.duracionMs);
   }
 
-  /** El admin termina la ronda en curso antes de tiempo (sin adjudicar). */
-  abortRound() {
+  /** Termina la ronda en curso antes de tiempo (sin adjudicar), notificando round_end a jugadores/pantallas. */
+  private abortCurrentRound() {
     if (this.tickInterval) clearInterval(this.tickInterval);
     const round = this.state.currentRound;
     if (round) {
@@ -280,7 +281,24 @@ export class GameRoom {
       for (const s of this.state.screens) safeSend(s, screenPayload);
     }
     this.state.currentRound = null;
+  }
+
+  /** El admin termina la ronda en curso antes de tiempo (sin adjudicar). */
+  abortRound() {
+    this.abortCurrentRound();
     this.state.estado = "lobby";
+    this.broadcastHostState();
+  }
+
+  /** El admin borra a todos los jugadores registrados y los manda de vuelta al registro. */
+  resetPlayers() {
+    this.abortCurrentRound();
+    for (const p of this.state.players.values()) {
+      if (p.socket) safeSend(p.socket, { t: "reset" });
+    }
+    this.state.players.clear();
+    this.state.estado = "lobby";
+    deletePlayerLogins(this.state.pin).catch(() => {});
     this.broadcastHostState();
   }
 

@@ -121,6 +121,36 @@ export default function Play() {
         setFase((f) => (f === "reconectando" ? "join" : f));
         break;
       }
+      case "reset": {
+        localStorage.removeItem("subasta_resume");
+        localStorage.removeItem("subasta_player");
+        resumeTokenRef.current = undefined;
+        roundIdRef.current = null;
+        seqRef.current = 0;
+        pendingTapsRef.current = 0;
+        tapTimestampsRef.current = [];
+        roundActiveRef.current = false;
+        nicknameRef.current = "";
+        telefonoRef.current = "";
+        correoRef.current = "";
+        setPlayerId(null);
+        setPropiedad(null);
+        setStartAt(0);
+        setRoundId(null);
+        setCountdown(0);
+        setRemainingMs(0);
+        setMisTaps(0);
+        setServidorTaps(0);
+        setMiPosicion(0);
+        setLider(null);
+        setCoins([]);
+        setResultado(null);
+        setNickname("");
+        setTelefono("");
+        setCorreo("");
+        setFase("join");
+        break;
+      }
     }
   }, []);
 

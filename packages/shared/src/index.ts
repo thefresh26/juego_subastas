@@ -141,6 +141,9 @@ export const ErrorMsg = z.object({
   mensaje: z.string(),
 });
 
+// El admin reinició a todos los jugadores: vuelve a la pantalla de registro.
+export const PlayerResetMsg = z.object({ t: z.literal("reset") });
+
 export const ServerToPlayerMsg = z.discriminatedUnion("t", [
   JoinedMsg,
   RoundArmedToPlayerMsg,
@@ -148,6 +151,7 @@ export const ServerToPlayerMsg = z.discriminatedUnion("t", [
   RoundEndToPlayerMsg,
   PongMsg,
   ErrorMsg,
+  PlayerResetMsg,
 ]);
 export type ServerToPlayerMsg = z.infer<typeof ServerToPlayerMsg>;
 
@@ -229,6 +233,9 @@ export const HostCreateAdminMsg = z.object({
   password: z.string().min(6),
 });
 
+// Borra a todos los jugadores registrados y los manda de vuelta a la pantalla de registro.
+export const HostResetPlayersMsg = z.object({ t: z.literal("host:reset_players") });
+
 export const HostToServerMsg = z.discriminatedUnion("t", [
   HostArmMsg,
   HostStartMsg,
@@ -243,6 +250,7 @@ export const HostToServerMsg = z.discriminatedUnion("t", [
   HostDeletePropertyMsg,
   HostRelistPropertyMsg,
   HostCreateAdminMsg,
+  HostResetPlayersMsg,
 ]);
 export type HostToServerMsg = z.infer<typeof HostToServerMsg>;
 

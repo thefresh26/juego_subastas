@@ -123,6 +123,12 @@ export async function logPlayerLogin(params: {
   if (error) console.error("[supabase] error registrando login de jugador:", error.message);
 }
 
+export async function deletePlayerLogins(eventPin: string): Promise<void> {
+  if (!supabaseAdmin) return;
+  const { error } = await supabaseAdmin.from("player_logins").delete().eq("event_pin", eventPin);
+  if (error) console.error("[supabase] error borrando player_logins:", error);
+}
+
 export async function logRoundResult(params: {
   propertyId: string;
   winnerNickname: string | null;

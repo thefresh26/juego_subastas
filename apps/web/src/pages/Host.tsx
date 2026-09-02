@@ -234,6 +234,11 @@ export default function Host() {
     send({ t: "host:relist_property", propertyId: id });
   };
 
+  const reiniciarJugadores = () => {
+    if (!window.confirm("¿Reiniciar a todos los jugadores? Tendrán que registrarse de nuevo.")) return;
+    send({ t: "host:reset_players" });
+  };
+
   const joinUrl = (pin: string) => `${window.location.origin}/play?pin=${pin}`;
 
   const copiarEnlace = async (pin: string) => {
@@ -610,12 +615,20 @@ export default function Host() {
         )}
       </div>
 
-      <button
-        className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-        onClick={() => setShowJugadores(true)}
-      >
-        Ver participantes ({state?.jugadores.length ?? 0})
-      </button>
+      <div className="flex gap-3">
+        <button
+          className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          onClick={() => setShowJugadores(true)}
+        >
+          Ver participantes ({state?.jugadores.length ?? 0})
+        </button>
+        <button
+          className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          onClick={reiniciarJugadores}
+        >
+          Reiniciar jugadores
+        </button>
+      </div>
 
       {/* ---------- Modal crear/editar inmueble ---------- */}
       {showForm && (
