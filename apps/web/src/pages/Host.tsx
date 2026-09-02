@@ -385,57 +385,39 @@ export default function Host() {
             </p>
 
             {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-              <div ref={rankingFlipRef} className="flex flex-col gap-1 mb-4">
-                {liveTick.top.map((p, i) => (
-                  <div
-                    key={p.playerId}
-                    data-flip-key={p.playerId}
-                    className={`flex justify-between px-3 py-1.5 rounded text-sm transition-colors duration-300 ${
-                      i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
-                    }`}
-                  >
-                    <span>
-                      #{i + 1} {p.nickname}
-                      {p.flagged && (
-                        <span aria-label="marcado como sospechoso" title="Marcado como sospechoso" className="ml-1">
-                          ⚠
-                        </span>
-                      )}
-                    </span>
-                    <span className="font-mono tabular">
-                      {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-              <div className="flex items-end gap-2 mb-4">
+              <div ref={rankingFlipRef} className="flex flex-col gap-2 mb-4">
                 {(() => {
-                  const maxTaps = Math.max(...liveTick.top.map((p) => p.taps), 0);
+                  const valorMaximo = Math.max(...liveTick.top.map((p) => p.valorPujado), 1);
                   return liveTick.top.map((p, i) => {
-                    const pct = maxTaps > 0 ? Math.max((p.taps / maxTaps) * 100, 4) : 4;
+                    const pct = (p.valorPujado / valorMaximo) * 100;
+                    const esLider = i === 0;
                     return (
-                      <div key={p.playerId} className="flex-1 min-w-0 flex flex-col items-center">
-                        <span className="text-[10px] font-mono tabular mb-1">{p.taps}</span>
-                        <div className="w-full h-40 flex items-end rounded-t bg-manila/10 overflow-hidden">
-                          <div
-                            className={`w-full rounded-t transition-all duration-300 ease-out ${
-                              i === 0 ? "bg-oro" : "bg-azul"
-                            }`}
-                            style={{ height: `${pct}%` }}
-                          />
+                      <div
+                        key={p.playerId}
+                        data-flip-key={p.playerId}
+                        className={`relative overflow-hidden rounded-lg ${esLider ? "border-2 border-oro" : ""}`}
+                      >
+                        <div
+                          className="absolute inset-y-0 left-0 bg-azul/25 rounded-r-full transition-all duration-300 ease-out"
+                          style={{ width: `${pct}%` }}
+                        />
+                        <div
+                          className={`relative z-10 flex justify-between px-3 py-1.5 text-sm ${
+                            esLider ? "text-oro font-display" : "text-manila"
+                          }`}
+                        >
+                          <span>
+                            {esLider && "🏆 "}#{i + 1} {p.nickname}
+                            {p.flagged && (
+                              <span aria-label="marcado como sospechoso" title="Marcado como sospechoso" className="ml-1">
+                                ⚠
+                              </span>
+                            )}
+                          </span>
+                          <span className="font-mono tabular">
+                            {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
+                          </span>
                         </div>
-                        <span className="w-full text-[10px] mt-1 truncate text-center" title={p.nickname}>
-                          {p.nickname}
-                          {p.flagged && (
-                            <span aria-label="marcado como sospechoso" title="Marcado como sospechoso">
-                              {" "}
-                              ⚠
-                            </span>
-                          )}
-                        </span>
                       </div>
                     );
                   });

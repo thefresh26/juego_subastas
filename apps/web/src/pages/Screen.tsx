@@ -187,20 +187,37 @@ export default function Screen() {
           <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="mt-6" />
           <p className="opacity-60 mt-2">{tapsTotales} taps totales</p>
           <div ref={top5FlipRef} className="mt-6 flex flex-col gap-2">
-            {top5.map((p, i) => (
-              <div
-                key={p.playerId}
-                data-flip-key={p.playerId}
-                className={`flex items-center justify-between rounded-lg px-4 py-2.5 transition-colors duration-300 ${
-                  i === 0 ? "bg-oro/20 text-oro border border-oro font-display" : "bg-manila/10"
-                }`}
-              >
-                <span className="text-xl">#{i + 1} {p.nickname}</span>
-                <span key={p.valorPujado} className="value-pop font-mono tabular text-2xl lg:text-3xl">
-                  {p.valorPujado.toLocaleString("es-CO")} COP
-                </span>
-              </div>
-            ))}
+            {(() => {
+              const valorMaximo = Math.max(...top5.map((p) => p.valorPujado), 1);
+              return top5.map((p, i) => {
+                const pct = (p.valorPujado / valorMaximo) * 100;
+                const esLider = i === 0;
+                return (
+                  <div
+                    key={p.playerId}
+                    data-flip-key={p.playerId}
+                    className={`relative overflow-hidden rounded-lg ${esLider ? "border-2 border-oro" : ""}`}
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 bg-azul/25 rounded-r-full transition-all duration-300 ease-out"
+                      style={{ width: `${pct}%` }}
+                    />
+                    <div
+                      className={`relative z-10 flex items-center justify-between px-4 py-2.5 ${
+                        esLider ? "text-oro font-display" : "text-manila"
+                      }`}
+                    >
+                      <span className="text-xl">
+                        {esLider && "🏆 "}#{i + 1} {p.nickname}
+                      </span>
+                      <span key={p.valorPujado} className="value-pop font-mono tabular text-2xl lg:text-3xl">
+                        {p.valorPujado.toLocaleString("es-CO")} COP
+                      </span>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </div>
