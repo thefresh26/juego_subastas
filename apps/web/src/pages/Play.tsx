@@ -103,12 +103,6 @@ export default function Play() {
     setFase("join");
   }, []);
 
-  const onSalirClick = () => {
-    if (window.confirm("¿Seguro que quieres salir? Tendrás que registrarte de nuevo para volver a jugar.")) {
-      salirDelJuego();
-    }
-  };
-
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
     switch (msg.t) {
@@ -341,7 +335,7 @@ export default function Play() {
       <Centered>
         <p className="font-display text-xl">Estás dentro, {nickname}.</p>
         <p className="opacity-70 mt-2">Esperando a que el presentador arme la siguiente ronda…</p>
-        <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={onSalirClick}>
+        <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={salirDelJuego}>
           Salir
         </button>
       </Centered>
@@ -373,7 +367,6 @@ export default function Play() {
       <div
         className="min-h-screen bg-gradient-to-b from-azul to-navy3 select-none flex flex-col items-center justify-center gap-8 relative overflow-hidden phase-fade-in"
         style={{ touchAction: "manipulation", overscrollBehavior: "none", WebkitTapHighlightColor: "transparent" }}
-        onPointerDown={onTap}
       >
         <div className="flex flex-col items-center pointer-events-none">
           {propiedad?.imagenUrl && (
@@ -404,7 +397,8 @@ export default function Play() {
 
         <button
           type="button"
-          className="puja-glow w-56 h-56 rounded-full bg-manila text-archivo font-display text-3xl tracking-wide active:scale-90 hover:scale-105 transition-transform relative"
+          className="puja-glow w-72 h-72 max-w-[80vw] max-h-[80vw] aspect-square rounded-full bg-manila text-archivo font-display text-3xl tracking-wide active:scale-90 hover:scale-105 transition-transform relative"
+          onPointerDown={onTap}
         >
           ¡PUJA!
           {coins.map((c) => (
@@ -446,7 +440,7 @@ export default function Play() {
           <p className="text-sm opacity-60 mt-1">{resultado?.recortados} taps descartados (fuera de ventana)</p>
         )}
       </div>
-      <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={onSalirClick}>
+      <button type="button" className="text-sm text-manila/60 underline mt-8" onClick={salirDelJuego}>
         Salir
       </button>
     </Centered>

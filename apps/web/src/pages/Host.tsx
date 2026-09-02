@@ -226,7 +226,6 @@ export default function Host() {
   };
 
   const eliminarPropiedad = (id: string) => {
-    if (!window.confirm("¿Eliminar este inmueble? Esta acción no se puede deshacer.")) return;
     send({ t: "host:delete_property", propertyId: id });
   };
 
@@ -235,7 +234,6 @@ export default function Host() {
   };
 
   const reiniciarJugadores = () => {
-    if (!window.confirm("¿Reiniciar a todos los jugadores? Tendrán que registrarse de nuevo.")) return;
     send({ t: "host:reset_players" });
   };
 
