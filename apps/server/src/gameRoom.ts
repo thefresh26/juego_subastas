@@ -253,6 +253,30 @@ export class GameRoom {
     if (round) {
       this.setLocalPropertyEstado(round.propiedad.id, "disponible");
       setPropertyEstado(round.propiedad.id, "disponible").catch(() => {});
+
+      const ranking = this.rankRound(round);
+      for (const p of this.state.players.values()) {
+        const misTaps = round.counts.get(p.playerId) ?? 0;
+        const miPosicion = ranking.findIndex((r) => r.playerId === p.playerId) + 1 || ranking.length + 1;
+        safeSend(p.socket, {
+          t: "round_end",
+          roundId: round.roundId,
+          ganador: null,
+          miPosicion,
+          misTaps,
+          recortados: round.recortados.get(p.playerId) ?? 0,
+        });
+      }
+
+      const top5 = ranking.slice(0, 5);
+      const screenPayload = {
+        t: "round_end" as const,
+        roundId: round.roundId,
+        ganador: null,
+        valorFinal: 0,
+        top5,
+      };
+      for (const s of this.state.screens) safeSend(s, screenPayload);
     }
     this.state.currentRound = null;
     this.state.estado = "lobby";
