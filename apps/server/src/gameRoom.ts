@@ -47,7 +47,25 @@ export class GameRoom {
 
   async initProperties() {
     this.state.properties = await loadProperties();
+    await this.repararPropiedadesEnSubastaHuerfanas();
     this.broadcastHostState();
+  }
+
+  /**
+   * currentRound nunca se persiste, así que si el servidor se reinicia a mitad de una
+   * ronda (por ejemplo en un deploy de Render), el inmueble queda atascado en
+   * "en_subasta" en la base de datos sin ninguna ronda que lo vaya a cerrar. Al
+   * arrancar, currentRound siempre es null, así que cualquier inmueble en
+   * "en_subasta" en ese momento es huérfano: lo liberamos a "disponible".
+   */
+  private async repararPropiedadesEnSubastaHuerfanas() {
+    const huerfanas = this.state.properties.filter(
+      (p) => p.estado === "en_subasta" && this.state.currentRound?.propiedad.id !== p.id
+    );
+    for (const p of huerfanas) {
+      this.setLocalPropertyEstado(p.id, "disponible");
+      await setPropertyEstado(p.id, "disponible");
+    }
   }
 
   // ---------- Conexiones ----------

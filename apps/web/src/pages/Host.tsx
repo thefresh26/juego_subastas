@@ -549,7 +549,13 @@ export default function Host() {
                     <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                   )}
                   <p className="font-display">{p.nombre}</p>
-                  <p className="text-xs opacity-70">{p.ciudad}</p>
+                  <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
+                  <button
+                    className="underline text-xs transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    onClick={() => volverAPonerEnSubasta(p.id)}
+                  >
+                    Liberar
+                  </button>
                 </div>
               ))}
             </div>
