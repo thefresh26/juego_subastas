@@ -255,9 +255,10 @@ export class GameRoom {
       setPropertyEstado(round.propiedad.id, "disponible").catch(() => {});
 
       const ranking = this.rankRound(round);
+      const positions = this.buildPositions(ranking);
       for (const p of this.state.players.values()) {
         const misTaps = round.counts.get(p.playerId) ?? 0;
-        const miPosicion = ranking.findIndex((r) => r.playerId === p.playerId) + 1 || ranking.length + 1;
+        const miPosicion = positions.get(p.playerId) ?? ranking.length + 1;
         safeSend(p.socket, {
           t: "round_end",
           roundId: round.roundId,
@@ -321,9 +322,10 @@ export class GameRoom {
       startedAt: round.startAt,
     }).catch(() => {});
 
+    const positions = this.buildPositions(ranking);
     for (const p of this.state.players.values()) {
       const misTaps = round.counts.get(p.playerId) ?? 0;
-      const miPosicion = ranking.findIndex((r) => r.playerId === p.playerId) + 1 || ranking.length + 1;
+      const miPosicion = positions.get(p.playerId) ?? ranking.length + 1;
       safeSend(p.socket, {
         t: "round_end",
         roundId,
@@ -366,6 +368,13 @@ export class GameRoom {
     return rows;
   }
 
+  /** Posición (1-based) de cada jugador en un ranking ya ordenado, precalculada una sola vez. */
+  private buildPositions(ranking: PlayerSummary[]): Map<string, number> {
+    const positions = new Map<string, number>();
+    ranking.forEach((r, i) => positions.set(r.playerId, i + 1));
+    return positions;
+  }
+
   buildPodium() {
     const totals = new Map<string, { adjudicados: number; valor: number; taps: number }>();
     for (const round of this.state.roundHistory) {
@@ -404,11 +413,12 @@ export class GameRoom {
     if (!round || round.estado !== "running") return;
     const remainingMs = Math.max(0, round.startAt + round.duracionMs - this.now());
     const ranking = this.rankRound(round);
+    const positions = this.buildPositions(ranking);
     const lider = ranking.length > 0 && ranking[0].taps > 0 ? { nickname: ranking[0].nickname, taps: ranking[0].taps } : null;
 
     for (const p of this.state.players.values()) {
       const misTaps = round.counts.get(p.playerId) ?? 0;
-      const miPosicion = ranking.findIndex((r) => r.playerId === p.playerId) + 1 || ranking.length + 1;
+      const miPosicion = positions.get(p.playerId) ?? ranking.length + 1;
       safeSend(p.socket, {
         t: "tick",
         roundId: round.roundId,
