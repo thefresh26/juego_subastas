@@ -109,10 +109,10 @@ export default function Screen() {
     const joinUrl = qrUrl ? `${window.location.origin}${qrUrl}` : null;
     return (
       <FullScreen>
-        <BrandMark className="w-14 h-14 mb-6" />
+        <BrandMark className="w-16 h-16 mb-6" />
         {joinUrl ? (
-          <div className="bg-manila p-4 rounded-xl mb-6">
-            <QRCodeSVG value={joinUrl} size={220} />
+          <div className="bg-manila p-6 rounded-xl mb-6">
+            <QRCodeSVG value={joinUrl} size={340} />
           </div>
         ) : null}
         <p className="opacity-70 mb-8">Escanea el código QR para participar</p>
