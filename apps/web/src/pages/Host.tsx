@@ -538,14 +538,14 @@ export default function Host() {
                 <div className="flex gap-2 flex-wrap">
                   <button
                     type="button"
-                    className="bg-azul/80 hover:bg-azul text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
+                    className="bg-azul/80 text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors hover:opacity-90"
                     onClick={() => openEditForm(p)}
                   >
                     Editar
                   </button>
                   <button
                     type="button"
-                    className="bg-sello/80 hover:bg-sello text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
+                    className="bg-sello/80 text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors hover:opacity-90"
                     onClick={() => eliminarPropiedad(p.id)}
                   >
                     Eliminar
@@ -571,21 +571,21 @@ export default function Host() {
                   <div className="flex gap-2 flex-wrap">
                     <button
                       type="button"
-                      className="bg-esmeralda/80 hover:bg-esmeralda text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
+                      className="bg-esmeralda/80 text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors hover:opacity-90"
                       onClick={() => volverAPonerEnSubasta(p.id)}
                     >
                       Volver a poner en subasta
                     </button>
                     <button
                       type="button"
-                      className="bg-azul/80 hover:bg-azul text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
+                      className="bg-azul/80 text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors hover:opacity-90"
                       onClick={() => openEditForm(p)}
                     >
                       Editar
                     </button>
                     <button
                       type="button"
-                      className="bg-sello/80 hover:bg-sello text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors"
+                      className="bg-sello/80 text-manila text-xs font-display px-3 py-1.5 rounded-full transition-colors hover:opacity-90"
                       onClick={() => eliminarPropiedad(p.id)}
                     >
                       Eliminar

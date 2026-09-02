@@ -236,7 +236,7 @@ body,
 }
 
 /* Pop del valor de puja en el ranking de /screen cuando sube. */
-@keyframes value-pop {
+@keyframes valor-pop {
   0% {
     transform: scale(1);
   }
@@ -248,8 +248,8 @@ body,
   }
 }
 
-.value-pop {
-  animation: value-pop 200ms ease-out;
+.valor-pop {
+  animation: valor-pop 200ms ease-out;
 }
 
 /* Entrada del trofeo en la pantalla de proyección al adjudicar. */

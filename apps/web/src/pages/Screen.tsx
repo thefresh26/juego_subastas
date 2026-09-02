@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
@@ -84,6 +84,26 @@ export default function Screen() {
   useEffect(() => {
     if (sello) setConfetti(generarConfeti(36));
   }, [sello]);
+
+  // Detecta, comparando contra el valor anterior de cada jugador (guardado
+  // en un ref), a quién le subió la puja desde el último tick, para
+  // dispararle el pop solo a esos valores (no a todos en cada render).
+  const valoresPreviosRef = useRef<Record<string, number>>({});
+  const [popGen, setPopGen] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const anteriores = valoresPreviosRef.current;
+    const subieron: Record<string, number> = {};
+    for (const p of top5) {
+      if (anteriores[p.playerId] !== undefined && p.valorPujado > anteriores[p.playerId]) {
+        subieron[p.playerId] = (popGen[p.playerId] ?? 0) + 1;
+      }
+    }
+    valoresPreviosRef.current = Object.fromEntries(top5.map((p) => [p.playerId, p.valorPujado]));
+    if (Object.keys(subieron).length > 0) {
+      setPopGen((g) => ({ ...g, ...subieron }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [top5]);
 
   if (podio) {
     return (
@@ -210,7 +230,7 @@ export default function Screen() {
                   <span className="text-xs lg:text-sm mt-2 w-16 truncate text-center" title={p.nickname}>
                     {p.nickname}
                   </span>
-                  <span key={p.valorPujado} className="value-pop font-mono tabular text-xs mt-0.5">
+                  <span key={popGen[p.playerId] ?? 0} className="valor-pop font-mono tabular text-xs mt-0.5">
                     {p.valorPujado.toLocaleString("es-CO")} COP
                   </span>
                 </div>
