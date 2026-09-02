@@ -302,6 +302,13 @@ export class GameRoom {
     this.broadcastHostState();
   }
 
+  /** El admin cierra una ronda ya terminada (estado "ended") sin tocar el estado del inmueble. */
+  closeRound() {
+    this.state.currentRound = null;
+    this.state.estado = "lobby";
+    this.broadcastHostState();
+  }
+
   /** El admin reinicia/repite la subasta del mismo inmueble. */
   async repeatRound(roundId: string) {
     const past = this.state.roundHistory.find((r) => r.roundId === roundId) ?? this.state.currentRound;

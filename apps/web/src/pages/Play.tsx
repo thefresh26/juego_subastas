@@ -63,6 +63,14 @@ export default function Play() {
   const roundActiveRef = useRef(false);
   const resumeTokenRef = useRef<string | undefined>(localStorage.getItem("subasta_resume") ?? undefined);
   const roundIdRef = useRef<string | null>(null);
+  const finTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearFinTimeout = () => {
+    if (finTimeoutRef.current) {
+      clearTimeout(finTimeoutRef.current);
+      finTimeoutRef.current = null;
+    }
+  };
 
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
@@ -80,6 +88,7 @@ export default function Play() {
         break;
       }
       case "round_armed": {
+        clearFinTimeout();
         setPropiedad(msg.propiedad as Property);
         setStartAt(msg.startAt as number);
         setDuracionMs(msg.duracionMs as number);
@@ -110,6 +119,10 @@ export default function Play() {
           recortados: msg.recortados as number,
         });
         setFase("fin");
+        clearFinTimeout();
+        finTimeoutRef.current = setTimeout(() => {
+          setFase((f) => (f === "fin" ? "esperando" : f));
+        }, 10_000);
         break;
       }
       case "pong": {
@@ -122,6 +135,7 @@ export default function Play() {
         break;
       }
       case "reset": {
+        clearFinTimeout();
         localStorage.removeItem("subasta_resume");
         localStorage.removeItem("subasta_player");
         resumeTokenRef.current = undefined;
@@ -155,6 +169,9 @@ export default function Play() {
   }, []);
 
   const { send, connected } = useSocket(WS_URL, onMessage);
+
+  // Limpia el timeout de "fin" -> "esperando" si el componente se desmonta.
+  useEffect(() => clearFinTimeout, []);
 
   // Ping periódico para calibrar el reloj.
   useEffect(() => {

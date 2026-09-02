@@ -236,6 +236,9 @@ export const HostCreateAdminMsg = z.object({
 // Borra a todos los jugadores registrados y los manda de vuelta a la pantalla de registro.
 export const HostResetPlayersMsg = z.object({ t: z.literal("host:reset_players") });
 
+// Cierra una ronda ya terminada (estado "ended") sin tocar el estado del inmueble, a diferencia de host:abort.
+export const HostCloseRoundMsg = z.object({ t: z.literal("host:close_round") });
+
 export const HostToServerMsg = z.discriminatedUnion("t", [
   HostArmMsg,
   HostStartMsg,
@@ -251,6 +254,7 @@ export const HostToServerMsg = z.discriminatedUnion("t", [
   HostRelistPropertyMsg,
   HostCreateAdminMsg,
   HostResetPlayersMsg,
+  HostCloseRoundMsg,
 ]);
 export type HostToServerMsg = z.infer<typeof HostToServerMsg>;
 

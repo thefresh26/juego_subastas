@@ -477,18 +477,29 @@ export default function Host() {
           )}
 
           <div className="flex gap-2">
-            <button
-              className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-              onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
-            >
-              Repetir ronda
-            </button>
-            <button
-              className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-              onClick={() => send({ t: "host:abort" })}
-            >
-              Abortar
-            </button>
+            {state.rondaActual.estado === "ended" ? (
+              <>
+                <button
+                  className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                  onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
+                >
+                  Repetir ronda
+                </button>
+                <button
+                  className="bg-azul text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                  onClick={() => send({ t: "host:close_round" })}
+                >
+                  Terminar
+                </button>
+              </>
+            ) : (
+              <button
+                className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                onClick={() => send({ t: "host:abort" })}
+              >
+                Abortar
+              </button>
+            )}
           </div>
         </div>
       ) : (

@@ -161,6 +161,9 @@ wssHost.on("connection", (socket: WebSocket) => {
         case "host:reset_players":
           room.resetPlayers();
           break;
+        case "host:close_round":
+          room.closeRound();
+          break;
         case "host:create_admin": {
           const result = await createAdminUser(msg.email, msg.password);
           if (result.ok) {
