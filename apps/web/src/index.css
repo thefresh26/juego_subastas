@@ -172,3 +172,73 @@ body,
 .modal-panel-in {
   animation: modal-panel-in 220ms ease-out;
 }
+
+/* Confeti de celebración (ganador en /play y ADJUDICADO en /screen). */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-24px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(var(--confetti-rot, 360deg));
+    opacity: 0;
+  }
+}
+
+.confetti-piece {
+  animation-name: confetti-fall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+  animation-duration: var(--confetti-duration, 1800ms);
+  animation-delay: var(--confetti-delay, 0ms);
+}
+
+/* Brillo dorado pulsante alrededor del nombre del ganador. Finito (3
+   pulsos) para no quedar como movimiento indefinido en pantalla. */
+@keyframes winner-glow-pulse {
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(245, 168, 0, 0.35);
+  }
+  50% {
+    text-shadow:
+      0 0 22px rgba(245, 168, 0, 0.95),
+      0 0 42px rgba(245, 168, 0, 0.5);
+  }
+}
+
+.winner-glow {
+  animation: winner-glow-pulse 1s ease-in-out 3;
+}
+
+/* Sacudida sutil del contador de taps cuando el jugador tapea muy rápido. */
+@keyframes tap-shake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-3px) rotate(-3deg);
+  }
+  75% {
+    transform: translateX(3px) rotate(3deg);
+  }
+}
+
+.tap-shake {
+  animation: tap-shake 220ms ease-in-out;
+}
+
+/* Respeta "reducir movimiento" del sistema operativo: neutraliza toda
+   animación y transición (incluida la infinita puja-glow) en vez de
+   dejar que cada componente la implemente por su cuenta. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -58,6 +58,7 @@ export default function Host() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [showJugadores, setShowJugadores] = useState(false);
+  const [showQrGrande, setShowQrGrande] = useState(false);
   const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
   // --- Formulario de propiedades (crear / editar) ---
@@ -297,7 +298,11 @@ export default function Host() {
                 autoComplete="current-password"
                 onKeyDown={(e) => e.key === "Enter" && loginConSupabase()}
               />
-              {loginError && <p className="text-sello text-sm mb-3">{loginError}</p>}
+              {loginError && (
+                <p role="alert" className="text-sm text-archivo bg-sello/10 border border-sello/40 rounded px-3 py-2 mb-3">
+                  {loginError}
+                </p>
+              )}
               <button
                 className="w-full bg-gradient-to-r from-azul to-navy3 text-manila py-3 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!connected || loggingIn || !email || !password}
@@ -334,19 +339,28 @@ export default function Host() {
   const disponibles = state?.properties.filter((p) => p.estado === "disponible") ?? [];
   const enSubasta = state?.properties.filter((p) => p.estado === "en_subasta") ?? [];
   const adjudicadas = state?.properties.filter((p) => p.estado === "adjudicado") ?? [];
+  const pin = state?.pin ?? "----";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body p-8">
-      <div className="flex items-start justify-between mb-1">
-        <h1 className="font-display text-2xl">Consola del presentador</h1>
+    <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body p-6 lg:p-8">
+      {/* ---------- Header: título + acciones de cuenta ---------- */}
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+        <div>
+          <h1 className="font-display text-2xl">Consola del presentador</h1>
+          <p className="opacity-70 text-sm mt-1">
+            estado: <span className="font-mono">{state?.estado ?? "-"}</span> · {state?.jugadores.length ?? 0} jugadores
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <button
-            className="bg-oro text-archivo px-3 py-1.5 rounded text-sm font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            type="button"
+            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={() => setShowAdminForm(true)}
           >
             + Nuevo administrador
           </button>
           <button
+            type="button"
             className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={logout}
           >
@@ -354,50 +368,14 @@ export default function Host() {
           </button>
         </div>
       </div>
-      <p className="opacity-70 mb-4">
-        PIN: <span className="font-mono tabular">{state?.pin ?? "----"}</span> · estado:{" "}
-        <span className="font-mono">{state?.estado ?? "-"}</span> · {state?.jugadores.length ?? 0} jugadores
-      </p>
-
-      {state?.pin && (
-        <div className="bg-manila/10 rounded-xl p-4 mb-6 flex items-center gap-4">
-          <div className="bg-manila p-2 rounded-lg shrink-0">
-            <QRCodeSVG value={joinUrl(state.pin)} size={110} />
-          </div>
-          <div className="flex-1">
-            <p className="font-display mb-1">QR de registro para los clientes</p>
-            <p className="text-sm opacity-70 mb-2">
-              Compártelo o proyéctalo para que escaneen y se registren (nombre, celular, correo) antes de pujar.
-              Cualquiera con este enlace puede reenviarlo a otros.
-            </p>
-            <p className="text-xs font-mono opacity-60 break-all mb-3">{joinUrl(state.pin)}</p>
-            <div className="flex gap-2">
-              <button
-                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                onClick={() => copiarEnlace(state.pin)}
-              >
-                <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
-                  {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
-                </span>
-              </button>
-              {canShare && (
-                <button
-                  className="bg-manila text-archivo px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                  onClick={() => compartirEnlace(state.pin)}
-                >
-                  Compartir
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {actionError && (
-        <div className="bg-sello/90 text-manila rounded-lg px-4 py-2 mb-6 flex justify-between">
+        <div role="alert" className="bg-sello/90 text-manila rounded-lg px-4 py-2 mb-6 flex items-center justify-between gap-3">
           <span>{actionError}</span>
           <button
-            className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            type="button"
+            aria-label="Cerrar aviso"
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded hover:bg-manila/10 transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={() => setActionError(null)}
           >
             ✕
@@ -405,150 +383,209 @@ export default function Host() {
         </div>
       )}
 
-      {state?.rondaActual ? (
-        <div className="bg-manila/10 rounded-xl p-4 mb-6">
-          <div className="flex items-start gap-3 mb-1">
-            {state.rondaActual.propiedad.imagenUrl && (
-              <img
-                src={state.rondaActual.propiedad.imagenUrl}
-                alt={state.rondaActual.propiedad.nombre}
-                className="w-20 h-14 object-cover rounded border border-manila/20 shrink-0"
-              />
-            )}
-            <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
+      {/* ---------- Sala: PIN, QR chico y compartir/copiar — nada más ---------- */}
+      <Section titulo="Sala">
+        <div className="flex items-center gap-4">
+          <div className="bg-manila p-2 rounded-lg shrink-0">
+            <QRCodeSVG value={joinUrl(pin)} size={90} />
           </div>
-          <p className="opacity-70 text-sm mb-3">
-            ronda: {state.rondaActual.estado}
-            {liveTick && liveTick.roundId === state.rondaActual.roundId && (
-              <> · {Math.ceil(liveTick.remainingMs / 1000)}s · {liveTick.tapsTotales} taps totales</>
-            )}
-          </p>
-
-          {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-            <div ref={rankingFlipRef} className="flex flex-col gap-1 mb-4">
-              {liveTick.top.map((p, i) => (
-                <div
-                  key={p.playerId}
-                  data-flip-key={p.playerId}
-                  className={`flex justify-between px-3 py-1.5 rounded text-sm transition-colors duration-300 ${
-                    i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
-                  }`}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-wide opacity-60 mb-1">PIN de acceso</p>
+            <p className="font-mono tabular text-3xl mb-3">{pin}</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="bg-gradient-to-r from-azul to-navy3 text-manila px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                onClick={() => copiarEnlace(pin)}
+              >
+                <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
+                  {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
+                </span>
+              </button>
+              {canShare && (
+                <button
+                  type="button"
+                  className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                  onClick={() => compartirEnlace(pin)}
                 >
-                  <span>
-                    #{i + 1} {p.nickname}
-                    {p.flagged ? " ⚠" : ""}
-                  </span>
-                  <span className="font-mono tabular">
-                    {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
-                  </span>
-                </div>
-              ))}
+                  Compartir
+                </button>
+              )}
+              <button
+                type="button"
+                className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                onClick={() => setShowQrGrande(true)}
+              >
+                Ver QR grande
+              </button>
             </div>
-          )}
+          </div>
+        </div>
+      </Section>
 
-          {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
-            <div className="flex items-end gap-2 mb-4">
-              {(() => {
-                const maxTaps = Math.max(...liveTick.top.map((p) => p.taps), 0);
-                return liveTick.top.map((p, i) => {
-                  const pct = maxTaps > 0 ? Math.max((p.taps / maxTaps) * 100, 4) : 4;
-                  return (
-                    <div key={p.playerId} className="flex-1 min-w-0 flex flex-col items-center">
-                      <span className="text-[10px] font-mono tabular mb-1">{p.taps}</span>
-                      <div className="w-full h-40 flex items-end rounded-t bg-manila/10 overflow-hidden">
-                        <div
-                          className={`w-full rounded-t transition-all duration-300 ease-out ${
-                            i === 0 ? "bg-oro" : "bg-azul"
-                          }`}
-                          style={{ height: `${pct}%` }}
-                        />
+      {/* ---------- Ronda actual: el bloque más usado durante el evento ---------- */}
+      <Section titulo="Ronda actual" destacado>
+        {state?.rondaActual ? (
+          <>
+            <div className="flex items-start gap-3 mb-1">
+              {state.rondaActual.propiedad.imagenUrl && (
+                <img
+                  src={state.rondaActual.propiedad.imagenUrl}
+                  alt={state.rondaActual.propiedad.nombre}
+                  className="w-20 h-14 object-cover rounded border border-manila/20 shrink-0"
+                />
+              )}
+              <p className="font-display text-lg">{state.rondaActual.propiedad.nombre}</p>
+            </div>
+            <p className="opacity-70 text-sm mb-3">
+              ronda: {state.rondaActual.estado}
+              {liveTick && liveTick.roundId === state.rondaActual.roundId && (
+                <> · {Math.ceil(liveTick.remainingMs / 1000)}s · {liveTick.tapsTotales} taps totales</>
+              )}
+            </p>
+
+            {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
+              <div ref={rankingFlipRef} className="flex flex-col gap-1 mb-4">
+                {liveTick.top.map((p, i) => (
+                  <div
+                    key={p.playerId}
+                    data-flip-key={p.playerId}
+                    className={`flex justify-between px-3 py-1.5 rounded text-sm transition-colors duration-300 ${
+                      i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
+                    }`}
+                  >
+                    <span>
+                      #{i + 1} {p.nickname}
+                      {p.flagged && (
+                        <span aria-label="marcado como sospechoso" title="Marcado como sospechoso" className="ml-1">
+                          ⚠
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-mono tabular">
+                      {p.taps} taps · {p.valorPujado.toLocaleString("es-CO")} COP
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {liveTick && liveTick.roundId === state.rondaActual.roundId && liveTick.top.length > 0 && (
+              <div className="flex items-end gap-2 mb-4">
+                {(() => {
+                  const maxTaps = Math.max(...liveTick.top.map((p) => p.taps), 0);
+                  return liveTick.top.map((p, i) => {
+                    const pct = maxTaps > 0 ? Math.max((p.taps / maxTaps) * 100, 4) : 4;
+                    return (
+                      <div key={p.playerId} className="flex-1 min-w-0 flex flex-col items-center">
+                        <span className="text-[10px] font-mono tabular mb-1">{p.taps}</span>
+                        <div className="w-full h-40 flex items-end rounded-t bg-manila/10 overflow-hidden">
+                          <div
+                            className={`w-full rounded-t transition-all duration-300 ease-out ${
+                              i === 0 ? "bg-oro" : "bg-azul"
+                            }`}
+                            style={{ height: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-full text-[10px] mt-1 truncate text-center" title={p.nickname}>
+                          {p.nickname}
+                          {p.flagged && (
+                            <span aria-label="marcado como sospechoso" title="Marcado como sospechoso">
+                              {" "}
+                              ⚠
+                            </span>
+                          )}
+                        </span>
                       </div>
-                      <span className="w-full text-[10px] mt-1 truncate text-center" title={p.nickname}>
-                        {p.nickname}
-                        {p.flagged ? " ⚠" : ""}
-                      </span>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            {state.rondaActual.estado === "ended" ? (
-              <>
-                <button
-                  className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                  onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
-                >
-                  Repetir ronda
-                </button>
-                <button
-                  className="bg-azul text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                  onClick={() => send({ t: "host:close_round" })}
-                >
-                  Terminar
-                </button>
-              </>
-            ) : (
-              <button
-                className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                onClick={() => send({ t: "host:abort" })}
-              >
-                Abortar
-              </button>
+                    );
+                  });
+                })()}
+              </div>
             )}
+
+            <div className="flex gap-2">
+              {state.rondaActual.estado === "ended" ? (
+                <>
+                  <button
+                    type="button"
+                    className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    onClick={() => send({ t: "host:close_round" })}
+                  >
+                    Terminar
+                  </button>
+                  <button
+                    type="button"
+                    className="bg-manila/10 border border-manila/30 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    onClick={() => send({ t: "host:repeat", roundId: state.rondaActual!.roundId })}
+                  >
+                    Repetir ronda
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                  onClick={() => send({ t: "host:abort" })}
+                >
+                  Abortar
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div>
+            <p className="opacity-70 mb-3">Elige el inmueble disponible para la siguiente ronda:</p>
+            <div className="grid grid-cols-3 gap-3">
+              {disponibles.map((p) => (
+                <button
+                  type="button"
+                  key={p.id}
+                  className="bg-manila text-archivo rounded-lg p-4 text-left transition-all duration-150 ease-out hover:bg-oro hover:scale-105 active:scale-95"
+                  onClick={() => send({ t: "host:arm", propertyId: p.id })}
+                >
+                  {p.imagenUrl && (
+                    <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
+                  )}
+                  <p className="font-display">{p.nombre}</p>
+                  <p className="text-sm opacity-70">
+                    {p.ciudad} · {p.avaluo.toLocaleString("es-CO")} COP
+                  </p>
+                </button>
+              ))}
+              {disponibles.length === 0 && <p className="opacity-50 text-sm">No hay inmuebles disponibles.</p>}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="mb-6">
-          <p className="opacity-70 mb-3">Elige el inmueble disponible para la siguiente ronda:</p>
-          <div className="grid grid-cols-3 gap-3">
-            {disponibles.map((p) => (
-              <button
-                key={p.id}
-                className="bg-manila text-archivo rounded-lg p-4 text-left transition-all duration-150 ease-out hover:bg-oro hover:scale-105 active:scale-95"
-                onClick={() => send({ t: "host:arm", propertyId: p.id })}
-              >
-                {p.imagenUrl && (
-                  <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
-                )}
-                <p className="font-display">{p.nombre}</p>
-                <p className="text-sm opacity-70">
-                  {p.ciudad} · {p.avaluo.toLocaleString("es-CO")} COP
-                </p>
-              </button>
-            ))}
-            {disponibles.length === 0 && <p className="opacity-50 text-sm">No hay inmuebles disponibles.</p>}
-          </div>
-        </div>
-      )}
+        )}
+      </Section>
 
-      <div className="flex gap-3 mb-8">
-        <button
-          className="bg-oro text-archivo px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-          onClick={openCreateForm}
-        >
-          + Nuevo inmueble
-        </button>
-      </div>
-
-      {/* ---------- Gestión de inmuebles ---------- */}
-      <div className="mb-8">
-        <p className="font-display mb-2">Inmuebles</p>
-
+      {/* ---------- Inmuebles: gestión, colapsada por defecto (se usa menos en vivo) ---------- */}
+      <Section
+        titulo="Inmuebles"
+        collapsible
+        defaultOpen={false}
+        accion={
+          <button
+            type="button"
+            className="bg-oro text-archivo px-3 py-1.5 rounded text-sm font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={openCreateForm}
+          >
+            + Nuevo inmueble
+          </button>
+        }
+      >
         {enSubasta.length > 0 && (
-          <div className="mb-3">
+          <div className="mb-4">
             <p className="text-xs uppercase opacity-50 mb-1">En subasta</p>
             <div className="grid grid-cols-3 gap-3">
               {enSubasta.map((p) => (
-                <div key={p.id} className="bg-manila/10 rounded-lg p-3">
+                <div key={p.id} className="bg-archivo/20 rounded-lg p-3">
                   {p.imagenUrl && (
                     <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                   )}
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
                   <button
+                    type="button"
                     className="underline text-xs transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                     onClick={() => volverAPonerEnSubasta(p.id)}
                   >
@@ -560,7 +597,7 @@ export default function Host() {
           </div>
         )}
 
-        <div className="mb-3">
+        <div className="mb-4">
           <p className="text-xs uppercase opacity-50 mb-1">Disponibles</p>
           <div className="grid grid-cols-3 gap-3">
             {disponibles.map((p) => (
@@ -574,12 +611,14 @@ export default function Host() {
                 </p>
                 <div className="flex gap-2 text-xs">
                   <button
+                    type="button"
                     className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                     onClick={() => openEditForm(p)}
                   >
                     Editar
                   </button>
                   <button
+                    type="button"
                     className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                     onClick={() => eliminarPropiedad(p.id)}
                   >
@@ -597,7 +636,7 @@ export default function Host() {
             <p className="text-xs uppercase opacity-50 mb-1">Adjudicados</p>
             <div className="grid grid-cols-3 gap-3">
               {adjudicadas.map((p) => (
-                <div key={p.id} className="bg-manila/10 rounded-lg p-3">
+                <div key={p.id} className="bg-archivo/20 rounded-lg p-3">
                   {p.imagenUrl && (
                     <img src={p.imagenUrl} alt={p.nombre} className="w-full aspect-square object-cover object-center rounded-lg mb-2" />
                   )}
@@ -605,18 +644,21 @@ export default function Host() {
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
                   <div className="flex gap-2 text-xs">
                     <button
+                      type="button"
                       className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                       onClick={() => volverAPonerEnSubasta(p.id)}
                     >
                       Volver a poner en subasta
                     </button>
                     <button
+                      type="button"
                       className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                       onClick={() => openEditForm(p)}
                     >
                       Editar
                     </button>
                     <button
+                      type="button"
                       className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                       onClick={() => eliminarPropiedad(p.id)}
                     >
@@ -628,22 +670,54 @@ export default function Host() {
             </div>
           </div>
         )}
-      </div>
+      </Section>
 
-      <div className="flex gap-3">
-        <button
-          className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-          onClick={() => setShowJugadores(true)}
+      {/* ---------- Jugadores ---------- */}
+      <Section titulo="Jugadores">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={() => setShowJugadores(true)}
+          >
+            Ver participantes ({state?.jugadores.length ?? 0})
+          </button>
+          <button
+            type="button"
+            className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={reiniciarJugadores}
+          >
+            Reiniciar jugadores
+          </button>
+        </div>
+      </Section>
+
+      {/* ---------- Modal QR grande ---------- */}
+      {showQrGrande && (
+        <div
+          className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4 modal-backdrop-in"
+          onClick={() => setShowQrGrande(false)}
         >
-          Ver participantes ({state?.jugadores.length ?? 0})
-        </button>
-        <button
-          className="bg-sello/80 text-manila px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-          onClick={reiniciarJugadores}
-        >
-          Reiniciar jugadores
-        </button>
-      </div>
+          <div
+            className="bg-manila text-archivo rounded-xl p-8 flex flex-col items-center modal-panel-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="font-display text-xl mb-4">Escanea para participar</p>
+            <div className="bg-manila p-3 rounded-lg border border-archivo/10">
+              <QRCodeSVG value={joinUrl(pin)} size={340} />
+            </div>
+            <p className="font-mono tabular text-2xl mt-4">{pin}</p>
+            <p className="text-xs font-mono opacity-50 break-all mt-2 max-w-xs text-center">{joinUrl(pin)}</p>
+            <button
+              type="button"
+              className="mt-6 bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+              onClick={() => setShowQrGrande(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ---------- Modal crear/editar inmueble ---------- */}
       {showForm && (
@@ -651,52 +725,73 @@ export default function Host() {
           <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto modal-panel-in">
             <h2 className="font-display text-xl mb-4">{editingId ? "Editar inmueble" : "Nuevo inmueble"}</h2>
             <div className="flex flex-col gap-3">
-              <input
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="Nombre"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              />
-              <input
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="Ciudad"
-                value={form.ciudad}
-                onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
-              />
-              <input
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="Tipo (apartamento, lote, local...)"
-                value={form.tipo}
-                onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-              />
-              <input
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="Matrícula inmobiliaria"
-                value={form.matriculaInmobiliaria}
-                onChange={(e) => setForm({ ...form, matriculaInmobiliaria: e.target.value })}
-              />
+              <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                Nombre
+                <input
+                  className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                  placeholder="Nombre del inmueble"
+                  value={form.nombre}
+                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                Ciudad
+                <input
+                  className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                  placeholder="Ciudad"
+                  value={form.ciudad}
+                  onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                Tipo
+                <input
+                  className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                  placeholder="Apartamento, lote, local..."
+                  value={form.tipo}
+                  onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                Matrícula inmobiliaria
+                <input
+                  className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                  placeholder="Matrícula inmobiliaria"
+                  value={form.matriculaInmobiliaria}
+                  onChange={(e) => setForm({ ...form, matriculaInmobiliaria: e.target.value })}
+                />
+              </label>
               <div className="flex gap-3">
-                <input
-                  className="px-3 py-2 rounded border border-archivo/30 flex-1"
-                  type="number"
-                  placeholder="Área (m²)"
-                  value={form.areaM2 || ""}
-                  onChange={(e) => setForm({ ...form, areaM2: Number(e.target.value) })}
-                />
-                <input
-                  className="px-3 py-2 rounded border border-archivo/30 flex-1"
-                  type="number"
-                  placeholder="Avalúo (COP)"
-                  value={form.avaluo || ""}
-                  onChange={(e) => setForm({ ...form, avaluo: Number(e.target.value) })}
-                />
+                <label className="flex-1 flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                  Área (m²)
+                  <input
+                    className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                    type="number"
+                    placeholder="Área"
+                    value={form.areaM2 || ""}
+                    onChange={(e) => setForm({ ...form, areaM2: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="flex-1 flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                  Avalúo (COP)
+                  <input
+                    className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                    type="number"
+                    placeholder="Avalúo"
+                    value={form.avaluo || ""}
+                    onChange={(e) => setForm({ ...form, avaluo: Number(e.target.value) })}
+                  />
+                </label>
               </div>
-              <textarea
-                className="px-3 py-2 rounded border border-archivo/30"
-                placeholder="Descripción (opcional)"
-                value={form.descripcion}
-                onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-              />
+              <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                Descripción (opcional)
+                <textarea
+                  className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                  placeholder="Descripción"
+                  value={form.descripcion}
+                  onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+                />
+              </label>
               {supabase ? (
                 <div>
                   <label className="block text-xs uppercase tracking-wide opacity-70 mb-1">
@@ -721,19 +816,27 @@ export default function Host() {
                     }}
                   />
                   {uploadingImage && <p className="text-xs opacity-60 mt-1">Subiendo...</p>}
-                  {uploadError && <p className="text-xs text-sello mt-1">{uploadError}</p>}
+                  {uploadError && (
+                    <p role="alert" className="text-xs text-archivo bg-sello/10 border border-sello/40 rounded px-2 py-1 mt-1">
+                      {uploadError}
+                    </p>
+                  )}
                 </div>
               ) : (
-                <input
-                  className="px-3 py-2 rounded border border-archivo/30"
-                  placeholder="URL de imagen (opcional)"
-                  value={form.imagenUrl}
-                  onChange={(e) => setForm({ ...form, imagenUrl: e.target.value })}
-                />
+                <label className="flex flex-col gap-1 text-xs uppercase tracking-wide opacity-70">
+                  URL de imagen (opcional)
+                  <input
+                    className="normal-case px-3 py-2 rounded border border-archivo/30 text-base"
+                    placeholder="https://..."
+                    value={form.imagenUrl}
+                    onChange={(e) => setForm({ ...form, imagenUrl: e.target.value })}
+                  />
+                </label>
               )}
             </div>
             <div className="flex gap-2 mt-5">
               <button
+                type="button"
                 className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display flex-1 transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={
                   !form.nombre ||
@@ -749,6 +852,7 @@ export default function Host() {
                 {editingId ? "Guardar cambios" : "Crear inmueble"}
               </button>
               <button
+                type="button"
                 className="bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                 onClick={closeForm}
               >
@@ -766,6 +870,7 @@ export default function Host() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-xl">Participantes ({state?.jugadores.length ?? 0})</h2>
               <button
+                type="button"
                 className="text-sm underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                 onClick={() => setShowJugadores(false)}
               >
@@ -778,11 +883,15 @@ export default function Host() {
                   <div className="flex items-center justify-between">
                     <p className="font-display">
                       {j.nickname}
-                      {j.flagged ? " ⚠" : ""}
+                      {j.flagged && (
+                        <span aria-label="marcado como sospechoso" title="Marcado como sospechoso" className="ml-1">
+                          ⚠
+                        </span>
+                      )}
                     </p>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
-                        j.conectado ? "bg-esmeralda text-manila" : "bg-archivo/10"
+                        j.conectado ? "bg-esmeralda text-archivo" : "bg-archivo/10"
                       }`}
                     >
                       {j.conectado ? "conectado" : "desconectado"}
@@ -810,7 +919,7 @@ export default function Host() {
             </p>
 
             {adminMsg && (
-              <p className={`text-sm mb-3 ${adminMsg.tipo === "ok" ? "text-esmeralda" : "text-sello"}`}>
+              <p className={`text-sm mb-3 ${adminMsg.tipo === "ok" ? "text-esmeralda" : "text-archivo bg-sello/10 border border-sello/40 rounded px-3 py-2"}`}>
                 {adminMsg.texto}
               </p>
             )}
@@ -836,6 +945,7 @@ export default function Host() {
 
             <div className="flex gap-2">
               <button
+                type="button"
                 className="bg-gradient-to-r from-azul to-navy3 text-manila px-4 py-2 rounded font-display flex-1 transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
                 disabled={!emailAdminValido || !passwordValida || creandoAdmin}
                 onClick={crearAdmin}
@@ -843,6 +953,7 @@ export default function Host() {
                 {creandoAdmin ? "Creando..." : "Crear administrador"}
               </button>
               <button
+                type="button"
                 className="bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                 onClick={() => {
                   setShowAdminForm(false);
@@ -856,5 +967,53 @@ export default function Host() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Tarjeta de sección con header (font-display + línea separadora),
+ * opcionalmente colapsable y opcionalmente "destacada" (borde/fondo
+ * distinto) para la sección que más se usa en vivo — Ronda actual.
+ */
+function Section({
+  titulo,
+  children,
+  collapsible = false,
+  defaultOpen = true,
+  destacado = false,
+  accion,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+  destacado?: boolean;
+  accion?: React.ReactNode;
+}) {
+  const [abierto, setAbierto] = useState(defaultOpen);
+  return (
+    <section
+      className={`mb-6 rounded-xl p-4 lg:p-5 ${
+        destacado ? "border-2 border-oro/50 bg-oro/[0.06]" : "border border-manila/10 bg-manila/10"
+      }`}
+    >
+      <div className="flex items-center justify-between border-b border-manila/15 pb-2 mb-4 gap-3">
+        <h2 className="font-display text-lg tracking-wide">{titulo}</h2>
+        <div className="flex items-center gap-3">
+          {accion}
+          {collapsible && (
+            <button
+              type="button"
+              aria-expanded={abierto}
+              className="text-sm underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+              onClick={() => setAbierto((a) => !a)}
+            >
+              {abierto ? "Ocultar" : "Mostrar"}
+            </button>
+          )}
+        </div>
+      </div>
+      {(!collapsible || abierto) && children}
+    </section>
   );
 }

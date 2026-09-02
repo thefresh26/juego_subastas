@@ -4,8 +4,10 @@ import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
 import { useFlip } from "../lib/useFlip.js";
+import { usePrefersReducedMotion } from "../lib/useReducedMotion.js";
 import BrandMark from "../components/BrandMark.js";
 import BarraTiempo from "../components/BarraTiempo.js";
+import Confetti from "../components/Confetti.js";
 
 const WS_URL = wsUrl("/ws/screen");
 
@@ -60,6 +62,7 @@ export default function Screen() {
   useSocket(WS_URL, onMessage);
 
   const top5FlipRef = useFlip(top5.map((p) => p.playerId));
+  const reducedMotion = usePrefersReducedMotion();
 
   if (podio) {
     return (
@@ -98,32 +101,54 @@ export default function Screen() {
     );
   }
 
-  return (
-    <FullScreen>
-      {sello ? (
+  if (sello) {
+    return (
+      <FullScreen>
+        <Confetti activo />
         <div className="text-center scale-in-overshoot">
           <div className="border-8 border-sello rounded-full px-10 py-6 rotate-[-6deg] inline-block">
             <p className="font-display text-4xl text-sello">ADJUDICADO</p>
           </div>
-          <p className="font-display text-2xl mt-6">{sello.ganador}</p>
+          <p className={`font-display text-3xl mt-6 text-oro ${!reducedMotion ? "winner-glow" : ""}`}>
+            {sello.ganador}
+          </p>
           <p className="font-mono tabular text-xl mt-1">{sello.valorFinal.toLocaleString("es-CO")} COP</p>
         </div>
-      ) : (
-        <>
-          {propiedad.imagenUrl && (
+      </FullScreen>
+    );
+  }
+
+  // Ronda en vivo: la foto del inmueble es la protagonista (se ve desde
+  // lejos en el proyector), con el resto de datos organizados alrededor.
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body flex items-center justify-center p-6 lg:p-10">
+      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12 items-center">
+        <div className="relative">
+          {propiedad.imagenUrl ? (
             <img
               src={propiedad.imagenUrl}
               alt={propiedad.nombre}
-              className="w-80 h-52 object-cover rounded-xl mb-4 border-4 border-manila/20"
+              className="w-full h-[42vh] lg:h-[72vh] object-cover rounded-2xl border-4 border-manila/20 shadow-2xl"
             />
+          ) : (
+            <div className="w-full h-[42vh] lg:h-[72vh] rounded-2xl bg-manila/10 border-4 border-manila/20 flex items-center justify-center">
+              <BrandMark className="w-20 h-20 opacity-40" />
+            </div>
           )}
+          <div className="absolute bottom-4 left-4 lg:bottom-6 lg:left-6 bg-archivo/85 rounded-xl px-5 py-3 lg:px-6 lg:py-4">
+            <p className="font-mono tabular text-4xl lg:text-6xl">{Math.ceil(remainingMs / 1000)}s</p>
+          </div>
+        </div>
+
+        <div className="text-left">
           <p className="font-mono text-sm uppercase opacity-70">{propiedad.matriculaInmobiliaria}</p>
-          <h2 className="font-display text-3xl mt-1">{propiedad.nombre}</h2>
-          <p className="opacity-70">{propiedad.ciudad} · {propiedad.areaM2} m² · avalúo {propiedad.avaluo.toLocaleString("es-CO")} COP</p>
-          <p className="font-mono tabular text-6xl mt-8">{Math.ceil(remainingMs / 1000)}s</p>
-          <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="w-96 mt-4" />
+          <h2 className="font-display text-3xl lg:text-5xl mt-1">{propiedad.nombre}</h2>
+          <p className="opacity-70 text-base lg:text-lg mt-2">
+            {propiedad.ciudad} · {propiedad.areaM2} m² · avalúo {propiedad.avaluo.toLocaleString("es-CO")} COP
+          </p>
+          <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} className="mt-6" />
           <p className="opacity-60 mt-2">{tapsTotales} taps totales</p>
-          <div ref={top5FlipRef} className="mt-8 flex flex-col gap-2 w-96">
+          <div ref={top5FlipRef} className="mt-6 flex flex-col gap-2">
             {top5.map((p, i) => (
               <div
                 key={p.playerId}
@@ -137,9 +162,9 @@ export default function Screen() {
               </div>
             ))}
           </div>
-        </>
-      )}
-    </FullScreen>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -3,8 +3,10 @@ import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { ServerClock } from "../lib/clock.js";
 import { wsUrl } from "../lib/wsUrl.js";
+import { usePrefersReducedMotion } from "../lib/useReducedMotion.js";
 import BrandMark from "../components/BrandMark.js";
 import BarraTiempo from "../components/BarraTiempo.js";
+import Confetti from "../components/Confetti.js";
 
 type Fase = "join" | "reconectando" | "esperando" | "armado" | "corriendo" | "fin";
 
@@ -51,6 +53,11 @@ export default function Play() {
   const [lider, setLider] = useState<{ nickname: string; taps: number } | null>(null);
   const [coins, setCoins] = useState<{ id: number; x: number; rot: number; duracion: number }[]>([]);
   const coinIdRef = useRef(0);
+  const [tapRafido, setTapRafido] = useState(false);
+  const lastTapAtRef = useRef(0);
+  const tapRafidoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
   const [resultado, setResultado] = useState<{
     ganador: { nickname: string; valorFinal: number } | null;
     misTaps: number;
@@ -72,8 +79,16 @@ export default function Play() {
     }
   };
 
+  const clearTapRafidoTimeout = () => {
+    if (tapRafidoTimeoutRef.current) {
+      clearTimeout(tapRafidoTimeoutRef.current);
+      tapRafidoTimeoutRef.current = null;
+    }
+  };
+
   const salirDelJuego = useCallback(() => {
     clearFinTimeout();
+    clearTapRafidoTimeout();
     localStorage.removeItem("subasta_resume");
     localStorage.removeItem("subasta_player");
     resumeTokenRef.current = undefined;
@@ -96,10 +111,12 @@ export default function Play() {
     setMiPosicion(0);
     setLider(null);
     setCoins([]);
+    setTapRafido(false);
     setResultado(null);
     setNickname("");
     setTelefono("");
     setCorreo("");
+    setJoinError(null);
     setFase("join");
   }, []);
 
@@ -107,6 +124,7 @@ export default function Play() {
     const msg = data as Record<string, unknown>;
     switch (msg.t) {
       case "joined": {
+        setJoinError(null);
         setPlayerId(msg.playerId as string);
         setValorPorTap(msg.valorPorTap as number);
         resumeTokenRef.current = msg.resumeToken as string;
@@ -162,6 +180,7 @@ export default function Play() {
       }
       case "error": {
         console.warn("[server error]", msg);
+        setJoinError(String(msg.mensaje ?? "No se pudo entrar a la subasta. Intenta de nuevo."));
         setFase((f) => (f === "reconectando" ? "join" : f));
         break;
       }
@@ -230,6 +249,7 @@ export default function Play() {
   }, [fase, send]);
 
   const onJoin = () => {
+    setJoinError(null);
     nicknameRef.current = nickname;
     telefonoRef.current = telefono;
     correoRef.current = correo;
@@ -261,9 +281,19 @@ export default function Play() {
   const onTap = (e: React.PointerEvent) => {
     if (!e.isTrusted || !roundActiveRef.current) return;
     pendingTapsRef.current += 1;
-    tapTimestampsRef.current.push(Date.now());
+    const now = Date.now();
+    tapTimestampsRef.current.push(now);
     setMisTaps((n) => n + 1);
     if (navigator.vibrate) navigator.vibrate(8);
+
+    // Racha de taps muy seguidos (<180ms entre sí): sacude el contador un
+    // instante para que se sienta más vivo. No toca el batching de arriba.
+    if (!reducedMotion && now - lastTapAtRef.current < 180) {
+      setTapRafido(true);
+      clearTapRafidoTimeout();
+      tapRafidoTimeoutRef.current = setTimeout(() => setTapRafido(false), 240);
+    }
+    lastTapAtRef.current = now;
 
     // Solo visual: una monedita que sube y se desvanece con cada tap.
     // Ángulo final y duración varían para que no se vean todas idénticas.
@@ -317,6 +347,12 @@ export default function Play() {
             placeholder="correo@empresa.com"
             type="email"
           />
+
+          {joinError && (
+            <p role="alert" className="text-sm text-archivo bg-sello/10 border border-sello/40 rounded px-3 py-2 mb-3">
+              {joinError}
+            </p>
+          )}
 
           <button
             className="w-full bg-gradient-to-r from-azul to-navy3 text-manila py-3 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 disabled:active:scale-100"
@@ -376,19 +412,22 @@ export default function Play() {
               className="w-28 h-20 object-cover rounded-lg mb-3 border-2 border-manila/30"
             />
           )}
-          <span key={misTaps} className="font-mono tabular text-manila text-6xl font-bold tap-pop">
+          <span
+            key={misTaps}
+            className={`font-mono tabular text-manila text-6xl font-bold tap-pop ${tapRafido ? "tap-shake" : ""}`}
+          >
             {misTaps}
           </span>
-          <span className="text-manila/80 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
-          <span className="text-manila/60 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
+          <span className="text-manila/90 mt-2">TAPS — {(misTaps * valorPorTap).toLocaleString("es-CO")} COP</span>
+          <span className="text-manila/90 mt-6 font-mono tabular">{Math.ceil(remainingMs / 1000)}s</span>
           <div className="w-40 mt-2">
             <BarraTiempo remainingMs={remainingMs} duracionMs={duracionMs} />
           </div>
-          <span className="text-manila/40 text-xs mt-1">posición #{miPosicion || "-"} · servidor: {servidorTaps}</span>
+          <span className="text-manila/85 text-xs mt-1">posición #{miPosicion || "-"} · servidor: {servidorTaps}</span>
           {lider && (
             <span
               key={lider.nickname}
-              className={`text-sm mt-3 font-display leader-pop ${voyGanando ? "text-oro" : "text-manila/70"}`}
+              className={`text-sm mt-3 font-display leader-pop ${voyGanando ? "text-oro" : "text-manila/90"}`}
             >
               {voyGanando ? "🏆 ¡Vas ganando!" : `🏆 Va ganando: ${lider.nickname}`}
             </span>
@@ -423,16 +462,21 @@ export default function Play() {
   }
 
   // fase === "fin"
+  const soyGanador = resultado?.ganador?.nickname === nickname;
   return (
     <Centered>
+      <Confetti activo={soyGanador} />
       <div className="scale-in-overshoot">
         <p className="font-display text-2xl mb-2">
           {resultado?.ganador ? "Ronda cerrada" : "Ronda cerrada, sin adjudicación"}
         </p>
         {resultado?.ganador && (
           <p className="opacity-80 mb-4">
-            Ganó <span className="text-oro font-semibold">{resultado.ganador.nickname}</span> con{" "}
-            {resultado.ganador.valorFinal.toLocaleString("es-CO")} COP
+            Ganó{" "}
+            <span className={`text-oro font-semibold ${soyGanador ? "winner-glow" : ""}`}>
+              {resultado.ganador.nickname}
+            </span>{" "}
+            con {resultado.ganador.valorFinal.toLocaleString("es-CO")} COP
           </p>
         )}
         <p className="font-mono tabular">Tus taps válidos: {resultado?.misTaps ?? 0}</p>
