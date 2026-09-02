@@ -328,6 +328,13 @@ export default function Host() {
           <button
             type="button"
             className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={() => window.open("/screen", "_blank")}
+          >
+            Abrir pantalla proyector
+          </button>
+          <button
+            type="button"
+            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={() => setShowAdminForm(true)}
           >
             + Nuevo administrador

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import type { Property } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
@@ -7,12 +7,26 @@ import { useFlip } from "../lib/useFlip.js";
 import { usePrefersReducedMotion } from "../lib/useReducedMotion.js";
 import BrandMark from "../components/BrandMark.js";
 import BarraTiempo from "../components/BarraTiempo.js";
-import Confetti from "../components/Confetti.js";
 
 const WS_URL = wsUrl("/ws/screen");
 
 type PlayerSummary = { playerId: string; nickname: string; taps: number; valorPujado: number };
 type Portafolio = { playerId: string; nickname: string; inmueblesAdjudicados: number; valorTotal: number; titulo?: string };
+
+type PiezaConfeti = { id: number; left: number; delay: number; duracion: number; rot: number; color: string };
+
+const CONFETTI_COLORES = ["bg-oro", "bg-azul", "bg-esmeralda", "bg-manila"];
+
+function generarConfeti(cantidad: number): PiezaConfeti[] {
+  return Array.from({ length: cantidad }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 700,
+    duracion: 2200 + Math.random() * 1400,
+    rot: Math.random() * 360,
+    color: CONFETTI_COLORES[i % CONFETTI_COLORES.length],
+  }));
+}
 
 export default function Screen() {
   const [pin, setPin] = useState("----");
@@ -25,6 +39,7 @@ export default function Screen() {
   const [sello, setSello] = useState<{ ganador: string; valorFinal: number } | null>(null);
   const [podio, setPodio] = useState<Portafolio[] | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [confetti, setConfetti] = useState<PiezaConfeti[]>([]);
 
   const onMessage = useCallback((data: unknown) => {
     const msg = data as Record<string, unknown>;
@@ -63,6 +78,12 @@ export default function Screen() {
 
   const top5FlipRef = useFlip(top5.map((p) => p.playerId));
   const reducedMotion = usePrefersReducedMotion();
+
+  // Genera las posiciones del confeti una sola vez por adjudicación (no en
+  // cada render): se regenera cuando `sello` pasa de null a un valor.
+  useEffect(() => {
+    if (sello) setConfetti(generarConfeti(36));
+  }, [sello]);
 
   if (podio) {
     return (
@@ -103,15 +124,32 @@ export default function Screen() {
   if (sello) {
     return (
       <FullScreen>
-        <Confetti activo />
-        <div className="text-center scale-in-overshoot">
-          <div className="border-8 border-sello rounded-full px-10 py-6 rotate-[-6deg] inline-block">
-            <p className="font-display text-4xl text-sello">ADJUDICADO</p>
+        {!reducedMotion && (
+          <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            {confetti.map((p) => (
+              <span
+                key={p.id}
+                className={`confetti-piece absolute top-0 w-2 h-3 rounded-sm ${p.color}`}
+                style={
+                  {
+                    left: `${p.left}%`,
+                    "--confetti-duration": `${p.duracion}ms`,
+                    "--confetti-delay": `${p.delay}ms`,
+                    "--confetti-rot": `${p.rot}deg`,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
           </div>
-          <p className={`font-display text-3xl mt-6 text-oro ${!reducedMotion ? "winner-glow" : ""}`}>
-            {sello.ganador}
+        )}
+        <div className="relative z-10 text-center scale-in-overshoot">
+          <p className={`text-7xl ${!reducedMotion ? "trophy-bounce" : ""}`} aria-hidden="true">
+            🏆
           </p>
-          <p className="font-mono tabular text-xl mt-1">{sello.valorFinal.toLocaleString("es-CO")} COP</p>
+          <p className={`font-display text-5xl text-oro mt-4 ${!reducedMotion ? "winner-glow" : ""}`}>
+            ¡Ha ganado {sello.ganador}!
+          </p>
+          <p className="font-mono tabular text-2xl mt-3">{sello.valorFinal.toLocaleString("es-CO")} COP</p>
         </div>
       </FullScreen>
     );
@@ -121,6 +159,7 @@ export default function Screen() {
   // lejos en el proyector), con el resto de datos organizados alrededor.
   return (
     <div className="min-h-screen bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body flex items-center justify-center p-6 lg:p-10">
+      <FullscreenButton />
       <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12 items-center">
         <div className="relative">
           {propiedad.imagenUrl ? (
@@ -152,12 +191,14 @@ export default function Screen() {
               <div
                 key={p.playerId}
                 data-flip-key={p.playerId}
-                className={`flex justify-between rounded px-4 py-2 transition-colors duration-300 ${
-                  i === 0 ? "bg-oro text-archivo font-display" : "bg-manila/10"
+                className={`flex items-center justify-between rounded-lg px-4 py-2.5 transition-colors duration-300 ${
+                  i === 0 ? "bg-oro/20 text-oro border border-oro font-display" : "bg-manila/10"
                 }`}
               >
-                <span>#{i + 1} {p.nickname}</span>
-                <span className="font-mono tabular">{p.valorPujado.toLocaleString("es-CO")} COP</span>
+                <span className="text-xl">#{i + 1} {p.nickname}</span>
+                <span key={p.valorPujado} className="value-pop font-mono tabular text-2xl lg:text-3xl">
+                  {p.valorPujado.toLocaleString("es-CO")} COP
+                </span>
               </div>
             ))}
           </div>
@@ -170,7 +211,48 @@ export default function Screen() {
 function FullScreen({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center bg-gradient-to-br from-archivo via-navy3 to-archivo text-manila font-body">
+      <FullscreenButton />
       {children}
     </div>
+  );
+}
+
+/** Botón discreto para entrar/salir de pantalla completa (proyector). */
+function FullscreenButton() {
+  const [pantallaCompleta, setPantallaCompleta] = useState(
+    () => typeof document !== "undefined" && !!document.fullscreenElement
+  );
+
+  useEffect(() => {
+    const onChange = () => setPantallaCompleta(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const alternar = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label={pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
+      className="fixed top-4 right-4 z-50 w-11 h-11 flex items-center justify-center rounded-full bg-manila/10 text-manila opacity-30 hover:opacity-100 transition-opacity duration-150"
+      onClick={alternar}
+    >
+      {pantallaCompleta ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V5a1 1 0 0 0-1-1H4m0 0l5 5M9 15v4a1 1 0 0 1-1 1H4m0 0l5-5m6-10v4a1 1 0 0 0 1 1h4m0 0l-5-5m5 15h-4a1 1 0 0 1-1-1v-4m0 0l5 5" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+        </svg>
+      )}
+    </button>
   );
 }
