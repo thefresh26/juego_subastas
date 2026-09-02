@@ -344,7 +344,7 @@ export default function Host() {
             + Nuevo administrador
           </button>
           <button
-            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm"
+            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
             onClick={logout}
           >
             Cerrar sesión
@@ -370,7 +370,7 @@ export default function Host() {
             <p className="text-xs font-mono opacity-60 break-all mb-3">{joinUrl(state.pin)}</p>
             <div className="flex gap-2">
               <button
-                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm overflow-hidden"
+                className="bg-manila text-archivo px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                 onClick={() => copiarEnlace(state.pin)}
               >
                 <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
@@ -379,7 +379,7 @@ export default function Host() {
               </button>
               {canShare && (
                 <button
-                  className="bg-manila text-archivo px-3 py-1.5 rounded text-sm"
+                  className="bg-manila text-archivo px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                   onClick={() => compartirEnlace(state.pin)}
                 >
                   Compartir
@@ -393,7 +393,12 @@ export default function Host() {
       {actionError && (
         <div className="bg-sello/90 text-manila rounded-lg px-4 py-2 mb-6 flex justify-between">
           <span>{actionError}</span>
-          <button onClick={() => setActionError(null)}>✕</button>
+          <button
+            className="transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={() => setActionError(null)}
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -520,10 +525,16 @@ export default function Host() {
                   {p.ciudad} · {p.tipo} · {p.areaM2} m²
                 </p>
                 <div className="flex gap-2 text-xs">
-                  <button className="underline" onClick={() => openEditForm(p)}>
+                  <button
+                    className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    onClick={() => openEditForm(p)}
+                  >
                     Editar
                   </button>
-                  <button className="underline text-sello" onClick={() => eliminarPropiedad(p.id)}>
+                  <button
+                    className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                    onClick={() => eliminarPropiedad(p.id)}
+                  >
                     Eliminar
                   </button>
                 </div>
@@ -545,13 +556,22 @@ export default function Host() {
                   <p className="font-display">{p.nombre}</p>
                   <p className="text-xs opacity-70 mb-2">{p.ciudad}</p>
                   <div className="flex gap-2 text-xs">
-                    <button className="underline" onClick={() => volverAPonerEnSubasta(p.id)}>
+                    <button
+                      className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      onClick={() => volverAPonerEnSubasta(p.id)}
+                    >
                       Volver a poner en subasta
                     </button>
-                    <button className="underline" onClick={() => openEditForm(p)}>
+                    <button
+                      className="underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      onClick={() => openEditForm(p)}
+                    >
                       Editar
                     </button>
-                    <button className="underline text-sello" onClick={() => eliminarPropiedad(p.id)}>
+                    <button
+                      className="underline text-sello transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                      onClick={() => eliminarPropiedad(p.id)}
+                    >
                       Eliminar
                     </button>
                   </div>
@@ -563,7 +583,7 @@ export default function Host() {
       </div>
 
       <button
-        className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display"
+        className="bg-manila/10 border border-manila/30 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
         onClick={() => setShowJugadores(true)}
       >
         Ver participantes ({state?.jugadores.length ?? 0})
@@ -672,7 +692,10 @@ export default function Host() {
               >
                 {editingId ? "Guardar cambios" : "Crear inmueble"}
               </button>
-              <button className="bg-archivo/10 px-4 py-2 rounded font-display" onClick={closeForm}>
+              <button
+                className="bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                onClick={closeForm}
+              >
                 Cancelar
               </button>
             </div>
@@ -686,7 +709,10 @@ export default function Host() {
           <div className="bg-manila text-archivo rounded-xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto modal-panel-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-xl">Participantes ({state?.jugadores.length ?? 0})</h2>
-              <button className="text-sm underline" onClick={() => setShowJugadores(false)}>
+              <button
+                className="text-sm underline transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                onClick={() => setShowJugadores(false)}
+              >
                 Cerrar
               </button>
             </div>
@@ -761,7 +787,7 @@ export default function Host() {
                 {creandoAdmin ? "Creando..." : "Crear administrador"}
               </button>
               <button
-                className="bg-archivo/10 px-4 py-2 rounded font-display"
+                className="bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
                 onClick={() => {
                   setShowAdminForm(false);
                   setAdminMsg(null);
