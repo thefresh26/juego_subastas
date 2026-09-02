@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 import type { Property, PropertyInput } from "@subasta/shared";
 import { useSocket } from "../lib/useSocket.js";
 import { wsUrl } from "../lib/wsUrl.js";
@@ -58,7 +57,6 @@ export default function Host() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [showJugadores, setShowJugadores] = useState(false);
-  const [showQrGrande, setShowQrGrande] = useState(false);
   const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
   // --- Formulario de propiedades (crear / editar) ---
@@ -383,45 +381,28 @@ export default function Host() {
         </div>
       )}
 
-      {/* ---------- Sala: PIN, QR chico y compartir/copiar — nada más ---------- */}
-      <Section titulo="Sala">
-        <div className="flex items-center gap-4">
-          <div className="bg-manila p-2 rounded-lg shrink-0">
-            <QRCodeSVG value={joinUrl(pin)} size={90} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-wide opacity-60 mb-1">PIN de acceso</p>
-            <p className="font-mono tabular text-3xl mb-3">{pin}</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="bg-gradient-to-r from-azul to-navy3 text-manila px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                onClick={() => copiarEnlace(pin)}
-              >
-                <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
-                  {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
-                </span>
-              </button>
-              {canShare && (
-                <button
-                  type="button"
-                  className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                  onClick={() => compartirEnlace(pin)}
-                >
-                  Compartir
-                </button>
-              )}
-              <button
-                type="button"
-                className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-                onClick={() => setShowQrGrande(true)}
-              >
-                Ver QR grande
-              </button>
-            </div>
-          </div>
-        </div>
-      </Section>
+      {/* ---------- PIN + enlace: línea compacta (el QR grande ya lo muestra /screen) ---------- */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <span className="font-mono tabular text-lg">PIN: {pin}</span>
+        <button
+          type="button"
+          className="bg-gradient-to-r from-azul to-navy3 text-manila px-3 py-1.5 rounded text-sm overflow-hidden transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+          onClick={() => copiarEnlace(pin)}
+        >
+          <span key={copiado ? "copiado" : "copiar"} className="inline-block leader-pop">
+            {copiado ? "✓ ¡Copiado!" : "Copiar enlace"}
+          </span>
+        </button>
+        {canShare && (
+          <button
+            type="button"
+            className="bg-manila/10 border border-manila/30 text-manila px-3 py-1.5 rounded text-sm transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+            onClick={() => compartirEnlace(pin)}
+          >
+            Compartir
+          </button>
+        )}
+      </div>
 
       {/* ---------- Ronda actual: el bloque más usado durante el evento ---------- */}
       <Section titulo="Ronda actual" destacado>
@@ -691,33 +672,6 @@ export default function Host() {
           </button>
         </div>
       </Section>
-
-      {/* ---------- Modal QR grande ---------- */}
-      {showQrGrande && (
-        <div
-          className="fixed inset-0 bg-archivo/80 flex items-center justify-center p-4 modal-backdrop-in"
-          onClick={() => setShowQrGrande(false)}
-        >
-          <div
-            className="bg-manila text-archivo rounded-xl p-8 flex flex-col items-center modal-panel-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="font-display text-xl mb-4">Escanea para participar</p>
-            <div className="bg-manila p-3 rounded-lg border border-archivo/10">
-              <QRCodeSVG value={joinUrl(pin)} size={340} />
-            </div>
-            <p className="font-mono tabular text-2xl mt-4">{pin}</p>
-            <p className="text-xs font-mono opacity-50 break-all mt-2 max-w-xs text-center">{joinUrl(pin)}</p>
-            <button
-              type="button"
-              className="mt-6 bg-archivo/10 px-4 py-2 rounded font-display transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
-              onClick={() => setShowQrGrande(false)}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ---------- Modal crear/editar inmueble ---------- */}
       {showForm && (
